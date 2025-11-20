@@ -101,7 +101,8 @@ def interest_batch():
             except Exception:
                 filter_query = {"_id": college_id}
 
-            result = db.College.update_one(filter_query, {"$inc": {"interest": inc}})
+            result = db.College.update_one(
+                filter_query, {"$inc": {"interest": inc}})
 
             if result.modified_count > 0:
                 updated_ids.append(college_id)
@@ -116,8 +117,6 @@ def interest_batch():
     print("📊 Final updated_ids:", updated_ids)
 
     return jsonify({"success": True, "updated": updated_ids}), 200
-
-
 
 
 @college_routes.route("/colleges/update-many", methods=["PUT"])
@@ -157,8 +156,8 @@ def update_many_colleges():
         # Add bulk update operation
         bulk_ops.append(
             UpdateOne(
-              {"_id": oid},
-              {"$set": update_data}
+                {"_id": oid},
+                {"$set": update_data}
             )
         )
         updated_ids.append(college_id)
