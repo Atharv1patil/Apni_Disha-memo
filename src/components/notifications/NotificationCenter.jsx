@@ -135,7 +135,7 @@ const NotificationCenter = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-end p-4">
+    <div className="fixed inset-0  bg-opacity-50 z-50 flex items-start justify-end p-4">
       <Card className="w-full max-w-md bg-white shadow-2xl border-0 mt-16 mr-4">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
