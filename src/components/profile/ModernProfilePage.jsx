@@ -111,7 +111,7 @@ const buildList = (clerkList, mongoString, fallbackList = []) => {
 
 export default function ModernProfilePage() {
   const { user: clerkUser } = useUser();
-  const { client } = useClerk(); // not used but kept if you expand later
+  const { client } = useClerk(); 
 
   const [mongoStudent, setMongoStudent] = useState(null);
 
@@ -143,7 +143,6 @@ export default function ModernProfilePage() {
   const hasUnsavedChanges =
     originalForm && JSON.stringify(form) !== JSON.stringify(originalForm);
 
-  /* ------------------ FETCH MONGODB STUDENT PROFILE ------------------ */
   useEffect(() => {
     if (!clerkUser) return;
 
@@ -157,6 +156,7 @@ export default function ModernProfilePage() {
           return;
         }
         const data = await res.json();
+        console.log(data);
         // Expecting: { success: true, student: { ... } }
         if (data?.success && data.student) {
           setMongoStudent(data.student);
@@ -170,69 +170,92 @@ export default function ModernProfilePage() {
   }, [clerkUser]);
 
 
-  /* ------------------ MERGE CLERK + MONGO + FALLBACK ------------------ */
-  useEffect(() => {
-    if (!clerkUser) return;
 
-    const unsafe = clerkUser.unsafeMetadata || {};
-    const mongo = mongoStudent || {};
+useEffect(() => {
+  if (!clerkUser) return;
 
-    const clerkBeyond = unsafe.beyondAcademics || {};
-    const fallbackBeyond = fallbackUser.beyondAcademics;
+  const unsafe = clerkUser.unsafeMetadata || {};
+  const mongo = mongoStudent || {};
+  const clerkBeyond = unsafe.beyondAcademics || {};
+  const fallbackBeyond = fallbackUser.beyondAcademics;
 
-    const mergedBeyond = {
-      hobbies: buildList(
-        clerkBeyond.hobbies,
-        mongo.hobbies,
-        fallbackBeyond.hobbies
-      ),
-      extracurriculars: buildList(
-        clerkBeyond.extracurriculars,
-        mongo.extracurriculars,
-        fallbackBeyond.extracurriculars
-      ),
-      sports: buildList(
-        clerkBeyond.sports,
-        mongo.sports,
-        fallbackBeyond.sports
-      ),
-      certifications:
-        Array.isArray(clerkBeyond.certifications) &&
-        clerkBeyond.certifications.length > 0
-          ? clerkBeyond.certifications
-          : fallbackBeyond.certifications,
-    };
+  // Fix: Convert MongoDB string fields → arrays safely
+  const mongoHobbies = mongo.hobbies
+    ? mongo.hobbies.split(",").map((s) => s.trim())
+    : [];
 
-    const merged = {
-      name: clerkUser.fullName || mongo.name || "Unnamed User",
-      email:
-        clerkUser.primaryEmailAddress?.emailAddress ||
-        mongo.email ||
-        "Not set",
-      avatar: clerkUser.imageUrl || "",
+  const mongoExtra = mongo.extracurriculars
+    ? mongo.extracurriculars.split(",").map((s) => s.trim())
+    : [];
 
-      location: unsafe.location || "Not set",
-      summary: unsafe.summary || fallbackUser.summary,
+  const mongoSports = mongo.sports
+    ? mongo.sports.split(",").map((s) => s.trim())
+    : [];
 
-      tags:
-        (Array.isArray(unsafe.tags) && unsafe.tags.length > 0
-          ? unsafe.tags
-          : typeof mongo.interests === "string" &&
-            mongo.interests.trim() !== ""
-          ? mongo.interests.split(",").map((s) => s.trim())
-          : fallbackUser.tags) || [],
+  const mongoInterests = mongo.interests
+    ? mongo.interests.split(",").map((s) => s.trim())
+    : [];
 
-      school: mongo.school || fallbackUser.school,
-      class: mongo.class || fallbackUser.class,
-      grade: mongo.grade || fallbackUser.grade,
+  // Final Beyond Academics Logic
+  const mergedBeyond = {
+    hobbies:
+      mongoHobbies.length > 0
+        ? mongoHobbies
+        : clerkBeyond.hobbies?.length > 0
+        ? clerkBeyond.hobbies
+        : fallbackBeyond.hobbies,
 
-      beyondAcademics: mergedBeyond,
-      metrics: fallbackUser.metrics,
-    };
+    extracurriculars:
+      mongoExtra.length > 0
+        ? mongoExtra
+        : clerkBeyond.extracurriculars?.length > 0
+        ? clerkBeyond.extracurriculars
+        : fallbackBeyond.extracurriculars,
 
-    setUserState(merged);
-    setForm(merged);
-  }, [clerkUser, mongoStudent]);
+    sports:
+      mongoSports.length > 0
+        ? mongoSports
+        : clerkBeyond.sports?.length > 0
+        ? clerkBeyond.sports
+        : fallbackBeyond.sports,
+
+    certifications:
+      clerkBeyond.certifications?.length > 0
+        ? clerkBeyond.certifications
+        : fallbackBeyond.certifications,
+  };
+
+  // Merge final state
+  const merged = {
+    name: clerkUser.fullName || mongo.name || "Unnamed User",
+    email:
+      clerkUser.primaryEmailAddress?.emailAddress ||
+      mongo.email ||
+      "Not set",
+    avatar: clerkUser.imageUrl || "",
+
+    location: unsafe.location || "Not set",
+    summary: unsafe.summary || fallbackUser.summary,
+
+    tags:
+      unsafe.tags?.length > 0
+        ? unsafe.tags
+        : mongoInterests.length > 0
+        ? mongoInterests
+        : fallbackUser.tags,
+
+    school: mongo.school || fallbackUser.school,
+    class: mongo.class || fallbackUser.class,
+    grade: mongo.grade || fallbackUser.grade,
+
+    beyondAcademics: mergedBeyond,
+    metrics: fallbackUser.metrics,
+  };
+
+  setUserState(merged);
+  setForm(merged);
+}, [clerkUser, mongoStudent]);
+
 
   /* ------------------ EDITING EFFECT (LOCK SCROLL) ------------------ */
   useEffect(() => {
@@ -310,7 +333,6 @@ export default function ModernProfilePage() {
         },
       });
 
-      // ⭐ 2) Update MongoDB profile
       try {
         await fetch(
           `http://127.0.0.1:8080/api/students/${clerkUser.id}`,
@@ -331,9 +353,13 @@ export default function ModernProfilePage() {
             }),
           }
         );
+      
+        
+
       } catch (err) {
         console.error("MongoDB update failed:", err);
       }
+     
       
 
       setUserState({

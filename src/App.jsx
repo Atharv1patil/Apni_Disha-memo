@@ -135,7 +135,6 @@ const appRouter = createBrowserRouter([
     ),
   },
 
-  // ------------ PROTECTED ROUTES -------------
   {
     path: "/profile",
     element: (

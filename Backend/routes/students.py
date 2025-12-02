@@ -145,10 +145,7 @@ def update_student(user_id):
         "student": _doc_to_json(student)
     }), 200
 
-# -------------------------------------------------------------
-# GET ALL STUDENTS
-# GET /api/students
-# -------------------------------------------------------------
+
 @students_routes.route("/students", methods=["GET"])
 def get_students():
     db = connect_db()

@@ -37,14 +37,13 @@ class GeminiChatService:
         self.model_name = model_name
         self.system_prompt = system_prompt
 
-        # Create model
+  
         self.model = genai.GenerativeModel(
             model_name=model_name,
             system_instruction=system_prompt,
             generation_config=generation_config or {},
         )
 
-        # ⭐ Persistent chat session (MEMORY)
         self.chat = self.model.start_chat(history=[])
 
     @staticmethod
