@@ -122,6 +122,8 @@ def update_student(user_id):
         "extracurriculars": data.get("extracurriculars"),
         "interests": data.get("interests"),
         "sports": data.get("sports"),
+        "quiz_results": data.get("quiz_results"),  # Added support for quiz_results
+        "updated_at": data.get("updated_at"),      # Added support for updated_at
     }
 
     # Remove None keys

@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts"
+import axios from "axios"
 
 /**
  * QuizResults.jsx
@@ -25,6 +26,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
  * - Shows stream, degrees, specializations from recommendations
  * - RIASEC stats radar chart
  * - Removed college recommendation section/button
+ * - Logs results to console and updates student profile with quiz_results
  */
 
 // RIASEC trait descriptions
@@ -37,12 +39,28 @@ const TRAIT_INFO = {
   C: { name: "Conventional", color: "from-purple-500 to-indigo-500", icon: "📊" },
 }
 
+const API_BASE_URL = "http://127.0.0.1:8080/api"
+
 const QuizResults = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [results, setResults] = useState(null)
   const [error, setError] = useState("")
   const [expandedCareer, setExpandedCareer] = useState(null)
+  const [updating, setUpdating] = useState(false)
+
+  // Fetch user_id from localStorage "apnidisha_student_profile"
+  const getUserIdFromLocalStorage = () => {
+    try {
+      const studentProfile = JSON.parse(localStorage.getItem("apnidisha_student_profile") || "{}")
+      return studentProfile.user_id || null
+    } catch (err) {
+      console.error("Error parsing student profile from localStorage:", err)
+      return null
+    }
+  }
+
+  const userId = getUserIdFromLocalStorage()
 
   useEffect(() => {
     const storedResults = sessionStorage.getItem("quizResults")
@@ -59,6 +77,42 @@ const QuizResults = () => {
     }
     setLoading(false)
   }, [])
+
+  // Update student profile with quiz results after loading
+  useEffect(() => {
+    if (results && userId) {
+      console.log("Quiz Results:", results)
+      updateStudentProfile(results)
+    } else if (results) {
+      console.log("Quiz Results (no update - missing user_id):", results)
+    }
+  }, [results, userId])
+
+  const updateStudentProfile = async (quizData) => {
+    if (!userId) {
+      console.warn("Skipping update: user_id not available")
+      return
+    }
+
+    setUpdating(true)
+    try {
+      // Use existing PUT /api/students/<user_id> route to update with quiz_results field
+      const response = await axios.put(`${API_BASE_URL}/students/${userId}`, {
+        quiz_results: quizData,
+        updated_at: new Date().toISOString(), // Optional: add timestamp
+      })
+
+      if (response.data.success) {
+        console.log("Student profile updated successfully with quiz results")
+      } else {
+        console.error("Update failed:", response.data.message)
+      }
+    } catch (err) {
+      console.error("Error updating student profile:", err)
+    } finally {
+      setUpdating(false)
+    }
+  }
 
   // Transform normalized scores to radar data
   const radarData = useMemo(() => {
@@ -123,6 +177,7 @@ const QuizResults = () => {
           >
             <ArrowLeft className="h-5 w-5 mr-2" /> Back to Assessments
           </Button>
+          {updating && <Loader2 className="h-5 w-5 animate-spin text-blue-600" />}
         </div>
 
         {/* Header */}
@@ -147,7 +202,7 @@ const QuizResults = () => {
               <div className="flex justify-center gap-4 flex-wrap mb-6">
                 {topTraits.map((trait, idx) => (
                   <motion.div
-                    key={trait}
+                    key={idx}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.1 }}
