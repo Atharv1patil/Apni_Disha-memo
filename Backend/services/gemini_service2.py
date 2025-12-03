@@ -1,6 +1,10 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from config.setting import Settings
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 class GeminiChatService:
     def __init__(self):
@@ -9,7 +13,7 @@ class GeminiChatService:
 
         self.llm = ChatGoogleGenerativeAI(
             model=settings.GEMINI_MODEL,
-            google_api_key="AIzaSyAtJVeQyo_etjg4_b8yswZ3SgyIwwawUp8",
+            google_api_key = os.getenv("GEMINI_API_KEY_2"),
             temperature=0
         )
 
