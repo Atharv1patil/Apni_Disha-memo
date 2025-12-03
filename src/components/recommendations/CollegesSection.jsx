@@ -359,7 +359,7 @@ export default function CollegesSection({
                         {reviewCount} reviews
                       </div>
                       <div className="text-xs text-gray-500">
-                        {pct > 0 ? `${pct}% from your school` : "—"}
+                        {pct > 0 ? `Popular  from your school` : "—"}
                       </div>
                     </div>
                   </div>

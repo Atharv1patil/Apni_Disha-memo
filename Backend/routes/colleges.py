@@ -380,4 +380,284 @@ def recommend_colleges(user_id):
     }), 200
 
 
-    
+# the college directory with sorting and filtering
+# -------------------------------------------------
+# the college directory with sorting and filtering
+# -------------------------------------------------
+
+@college_routes.route("/colleges/directory", methods=["GET"])
+def college_directory():
+    db = connect_db()
+
+    # Only colleges that have a valid image_url
+    base_filter = {
+        "image_url": {"$exists": True, "$ne": None, "$ne": ""}
+    }
+
+    pipeline = [
+        {"$match": base_filter},
+
+        # Safely compute sorting fields (avoid errors on null/missing fields)
+        {"$addFields": {
+            "is_nagpur": {
+                "$cond": {
+                    "if": {
+                        "$or": [
+                            {"$eq": [{"$toLower": {"$ifNull": ["$district", ""]}}, "nagpur"]},
+                            {"$eq": [{"$toLower": {"$ifNull": ["$nirf_city", ""]}}, "nagpur"]},
+                            {"$regexMatch": {
+                                "input": {"$toLower": {"$ifNull": ["$name", ""]}},
+                                "regex": "nagpur"
+                            }}
+                        ]
+                    },
+                    "then": True,
+                    "else": False
+                }
+            },
+
+            "nirf_rank_num": {
+                "$cond": {
+                    "if": {
+                        "$and": [
+                            {"$ne": ["$nirf_rank", None]},
+                            {"$ne": ["$nirf_rank", ""]},
+                            {"$isNumber": "$nirf_rank"}
+                        ]
+                    },
+                    "then": "$nirf_rank",
+                    "else": {
+                        "$cond": {
+                            "if": {
+                                "$regexMatch": {
+                                    "input": {"$toString": {"$ifNull": ["$nirf_rank", "999999"]}},
+                                    "regex": "^\\d+$"
+                                }
+                            },
+                            "then": {"$toInt": {"$toString": "$nirf_rank"}},
+                            "else": 999999
+                        }
+                    }
+                }
+            },
+
+            "reviews_num": {
+                "$cond": {
+                    "if": {"$isNumber": "$reviews_count"},
+                    "then": "$reviews_count",
+                    "else": {
+                        "$cond": {
+                            "if": {"$ne": ["$reviews_count", None]},
+                            "then": {
+                                "$toInt": {
+                                    "$arrayElemAt": [
+                                        {"$split": [{"$toString": {"$ifNull": ["$reviews_count", "0"]}}, " "]},
+                                        0
+                                    ]
+                                }
+                            },
+                            "else": 0
+                        }
+                    }
+                }
+            },
+
+            "rating_num": {
+                "$cond": {
+                    "if": {"$isNumber": "$rating"},
+                    "then": {"$toDouble": "$rating"},
+                    "else": {
+                        "$cond": {
+                            "if": {"$ne": ["$rating", None]},
+                            "then": {"$toDouble": {"$ifNull": ["$rating", "0"]}},
+                            "else": 0.0
+                        }
+                    }
+                }
+            },
+
+            # ⭐ ADD INTEREST FIELD (SAFE PARSING)
+            "interest_num": {
+                "$cond": {
+                    "if": {"$isNumber": "$interest"},
+                    "then": "$interest",
+                    "else": {
+                        "$cond": {
+                            "if": {"$ne": ["$interest", None]},
+                            "then": {"$toInt": {"$ifNull": ["$interest", 0]}},
+                            "else": 0
+                        }
+                    }
+                }
+            }
+        }},
+
+        # Sort: Nagpur first → Best NIRF → Most reviews → Best rating
+        {"$sort": {
+            "is_nagpur": -1,
+            "nirf_rank_num": 1,
+            "reviews_num": -1,
+            "rating_num": -1
+            # You can also sort by interest here if wanted:
+            # "interest_num": -1
+        }},
+
+        # Return only what frontend needs
+        {"$project": {
+            "_id": {"$toString": "$_id"},
+            "name": {"$ifNull": ["$name", "Unknown College"]},
+            "state": 1,
+            "district": 1,
+            "city": {"$ifNull": ["$city", "$district", "Unknown"]},
+            "image_url": 1,
+            "rating": {"$ifNull": ["$rating", "N/A"]},
+            "reviews_count": {"$ifNull": ["$reviews_count", "0"]},
+            "nirf_rank": {"$ifNull": ["$nirf_rank", "Not Ranked"]},
+            "website": {"$ifNull": ["$website", ""]},
+            "college_type": 1,
+            "year_established": 1,
+
+            # ⭐ FINAL RETURN VALUE
+            "interest": "$interest_num"
+        }}
+    ]
+
+    try:
+        colleges = list(db.College.aggregate(pipeline, allowDiskUse=True))
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "message": "Aggregation failed"
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": colleges,
+        "total": len(colleges),
+        "message": f"Successfully loaded {len(colleges)} colleges with campus images"
+    }), 200
+# -------------------------------------------------
+# GET /api/colleges/directory/filter
+# Applies search + filters + sorting
+# -------------------------------------------------
+
+@college_routes.route("/colleges/directory/filter", methods=["GET"])
+def college_directory_filter():
+    db = connect_db()
+
+    # Read query parameters from frontend
+    search = request.args.get("search", "").strip()
+    state = request.args.get("state", "").strip()
+    college_type = request.args.get("type", "").strip()
+    min_rating = float(request.args.get("min_rating", 0))
+    max_nirf = int(request.args.get("max_nirf", 300))
+    sort_by = request.args.get("sort", "relevance")
+
+    # Base filter
+    base_filter = {
+        "image_url": {"$exists": True, "$ne": None, "$ne": ""}
+    }
+
+    # Search filter
+    if search:
+        base_filter["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"city": {"$regex": search, "$options": "i"}},
+            {"district": {"$regex": search, "$options": "i"}},
+            {"state": {"$regex": search, "$options": "i"}}
+        ]
+
+    # State filter
+    if state:
+        base_filter["state"] = {"$regex": state, "$options": "i"}
+
+    # College type filter
+    if college_type:
+        base_filter["college_type"] = {"$regex": college_type, "$options": "i"}
+
+    pipeline = [
+        {"$match": base_filter},
+
+        # Compute sortable fields
+        {"$addFields": {
+            "nirf_rank_num": {
+                "$cond": {
+                    "if": {"$isNumber": "$nirf_rank"},
+                    "then": "$nirf_rank",
+                    "else": 999999
+                }
+            },
+            "rating_num": {
+                "$cond": {
+                    "if": {"$isNumber": "$rating"},
+                    "then": "$rating",
+                    "else": {"$toDouble": {"$ifNull": ["$rating", 0]}}
+                }
+            },
+            "interest_num": {
+                "$cond": {
+                    "if": {"$isNumber": "$interest"},
+                    "then": "$interest",
+                    "else": {"$toInt": {"$ifNull": ["$interest", 0]}}
+                }
+            }
+        }},
+
+        # Minimum rating filter
+        {"$match": {"rating_num": {"$gte": min_rating}}},
+
+        # Maximum NIRF rank filter
+        {"$match": {"nirf_rank_num": {"$lte": max_nirf}}}
+    ]
+
+    # Sorting logic
+    if sort_by == "rating":
+        pipeline.append({"$sort": {"rating_num": -1}})
+    elif sort_by == "nirf":
+        pipeline.append({"$sort": {"nirf_rank_num": 1}})
+    elif sort_by == "interest":
+        pipeline.append({"$sort": {"interest_num": -1}})
+    elif sort_by == "year":
+        pipeline.append({"$sort": {"year_established": -1}})
+    else:
+        # Relevance default sorting
+        pipeline.append({"$sort": {
+            "interest_num": -1,
+            "rating_num": -1,
+            "nirf_rank_num": 1
+        }})
+
+    # Final projection
+    pipeline.append({
+        "$project": {
+            "_id": {"$toString": "$_id"},
+            "name": 1,
+            "state": 1,
+            "district": 1,
+            "city": 1,
+            "image_url": 1,
+            "rating": 1,
+            "reviews_count": 1,
+            "nirf_rank": 1,
+            "website": 1,
+            "college_type": 1,
+            "year_established": 1,
+            "interest": "$interest_num"
+        }
+    })
+
+    try:
+        colleges = list(db.College.aggregate(pipeline, allowDiskUse=True))
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "message": "Filtering failed"
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "data": colleges,
+        "total": len(colleges)
+    }), 200
