@@ -1,5 +1,4 @@
 // src/App.jsx
-import React from "react";
 import { createBrowserRouter, RouterProvider, Link } from "react-router-dom";
 import ModernLayout from "./components/layout/ModernLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -36,13 +35,17 @@ import AdminAnalytics from "./components/admin/AdminAnalytics";
 import { LanguageProvider } from "./components/context/LanguageContext";
 import ClerkProtectedRoute from "./components/auth/ClerkProtectedRoute";
 import ClerkEventsRedirect from "./clerk-events";
+import Roadmap from "./components/roadmap/Roadmap";
 
 const NotFound = () => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center">
     <div className="text-center">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
       <p className="text-gray-600 mb-6">Page not found</p>
-      <Link to="/" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+      <Link
+        to="/"
+        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+      >
         Go Home
       </Link>
     </div>
@@ -57,11 +60,15 @@ const PUBLIC_ROUTES = [
   "/colleges",
   "/colleges/:id",
   "/quiz",
+
+  "/roadmap",
 ];
 
 // Utility: Check if route is public
 function isPublicRoute(path) {
-  return PUBLIC_ROUTES.includes(path) || PUBLIC_ROUTES.some((p) => p.includes(":"));
+  return (
+    PUBLIC_ROUTES.includes(path) || PUBLIC_ROUTES.some((p) => p.includes(":"))
+  );
 }
 
 // ---------------- ROUTER ----------------
@@ -119,7 +126,7 @@ const appRouter = createBrowserRouter([
     element: (
       <ModernLayout>
         <ClerkProtectedRoute>
-        <QuizPage />
+          <QuizPage />
         </ClerkProtectedRoute>
       </ModernLayout>
     ),
@@ -129,8 +136,17 @@ const appRouter = createBrowserRouter([
     element: (
       <ModernLayout>
         <ClerkProtectedRoute>
-        <QuizResults />
+          <QuizResults />
         </ClerkProtectedRoute>
+      </ModernLayout>
+    ),
+  },
+  // PUBLIC — Roadmap page
+  {
+    path: "/roadmap",
+    element: (
+      <ModernLayout>
+        <Roadmap />
       </ModernLayout>
     ),
   },

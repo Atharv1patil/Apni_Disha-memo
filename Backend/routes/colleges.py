@@ -379,3 +379,5 @@ def recommend_colleges(user_id):
         "message": f"Recommended {len(top_colleges)} colleges: {len(top_nagpur)} in Nagpur, {len(top_outside)} outside"
     }), 200
 
+
+    
