@@ -29,13 +29,30 @@ def add_content():
 # ---------------------------------------------------------
 # GET ALL CONTENT (existing)
 # ---------------------------------------------------------
-@content_routes.route("/content", methods=["GET"])
+@content_routes.route("/content/all", methods=["GET"])
 def get_content():
     db = connect_db()
     content_list = list(db.Content.find())
 
     for c in content_list:
         c["_id"] = str(c["_id"])
+
+    return jsonify(content_list), 200
+
+# ---------------------------------------------------------
+# GET CONTENT BY ID (existing)
+# ---------------------------------------------------------
+
+@content_routes.route("/content/<string:id>", methods=["GET"])
+def get_content_by_id(id):
+    db = connect_db()
+    content = db.Content.find_one({"_id": id})
+
+    if content:
+        content["_id"] = str(content["_id"])
+        return jsonify(content), 200
+    else:
+        return jsonify({"success": False, "message": "Content not found"}), 404 
 
     return jsonify(content_list), 200
 
