@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useMemo } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   Mic,
   Volume2,
@@ -12,1730 +12,1493 @@ import {
   Pause,
   RotateCcw,
   Download,
-  Maximize2,
   Share2,
-} from "lucide-react";
-import { useTranslation } from "react-i18next";
-import i18n from "../../i18n";
-import {
-  getLabel,
-  STREAMS,
-  COURSES,
-  COLLEGES,
-  SCHOLARSHIPS,
-  SAMPLE_SCENARIOS,
-  COLLEGE_TYPES,
-  SKILLS,
-  UPSKILLS,
-  currency,
-  PERKS,
-  generateNarrative,
-} from "../../utils/careerStream";
-import FlowChart from "./flowchart";
-import FullScreenFlowChart from "./fullScreenFlowChart";
-import { ReactFlowProvider } from "reactflow";
-import FlowChartEmbedded from "./FlowChartEmbedded";
-import exportSummary from "./exportSummary";
-import ShareModule from "./share"; // Adjust path as needed
-import SharePdfModule from "./sharePDF";
-import Portal from "@/utils/portal";
-import {
-  collegesAPI,
-  bookmarksAPI,
-  streamsAPI,
-  degreesAPI,
-} from "../../services/api";
+  Shield,
+  TrendingUp,
+  Plus,
+  Trash2,
+  ExternalLink,
+  Clock,
+  IndianRupee,
+} from "lucide-react"
+import FullScreenFlowChart from "./fullScreenFlowChart"
+import { ReactFlowProvider } from "reactflow"
+import FlowChartEmbedded from "./FlowChartEmbedded"
+import ShareModule from "./share"
+import SharePdfModule from "./sharePDF"
+import Portal from "@/utils/portal"
+
+/* -----------------------
+   INTEGRATED COLLEGE DATA (with source links)
+   ----------------------- */
+const INTEGRATED_COLLEGE_DATA = [
+  {
+    name: "Visvesvaraya National Institute of Technology, Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Government",
+    source:
+      "https://vnit.ac.in/section/tnp/, https://www.shiksha.com/college/vnit-nagpur-visvesvaraya-national-institute-of-technology-24399/placement",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 723, overallPlacementRate: 92.5 },
+    courses: [
+      {
+        name: "B.Tech in Computer Science Engineering",
+        shortName: "BTECH CSE",
+        duration: "4 years",
+        fees: 550000,
+        avgPackage: 1192000,
+        placementRate: 98.5,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+      {
+        name: "B.Tech in Mechanical Engineering",
+        shortName: "BTECH ME",
+        duration: "4 years",
+        fees: 550000,
+        avgPackage: 900000,
+        placementRate: 92,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+      {
+        name: "M.Tech in Computer Science",
+        shortName: "MTECH CS",
+        duration: "2 years",
+        fees: 140000,
+        avgPackage: 798000,
+        placementRate: 88,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+    ],
+  },
+  {
+    name: "Indian Institute of Information Technology, Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Government",
+    source:
+      "https://www.iiitn.ac.in/placements/statistics, https://www.shiksha.com/college/iiit-nagpur-indian-institute-of-information-technology-53876/placement",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 188, overallPlacementRate: 90.82 },
+    courses: [
+      {
+        name: "B.Tech in Computer Science Engineering",
+        shortName: "BTECH CSE",
+        duration: "4 years",
+        fees: 792000,
+        avgPackage: 1325000,
+        placementRate: 92,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+      {
+        name: "B.Tech in Electronics & Communication Engineering",
+        shortName: "BTECH ECE",
+        duration: "4 years",
+        fees: 792000,
+        avgPackage: 950000,
+        placementRate: 88,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+    ],
+  },
+  {
+    name: "Yeshwantrao Chavan College of Engineering, Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Private",
+    source:
+      "https://ycce.edu/placement-details/, https://www.shiksha.com/college/yeshwantrao-chavan-college-of-engineering-nagar-yuwak-shikshan-sanstha-nagpur-11259/placement",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 1013, overallPlacementRate: 85 },
+    courses: [
+      {
+        name: "B.Tech in Computer Science Engineering",
+        shortName: "BTECH CSE",
+        duration: "4 years",
+        fees: 700000,
+        avgPackage: 650000,
+        placementRate: 90,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+      {
+        name: "B.Tech in Information Technology",
+        shortName: "BTECH IT",
+        duration: "4 years",
+        fees: 700000,
+        avgPackage: 620000,
+        placementRate: 88,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+      {
+        name: "B.Tech in Mechanical Engineering",
+        shortName: "BTECH ME",
+        duration: "4 years",
+        fees: 700000,
+        avgPackage: 520000,
+        placementRate: 75,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+    ],
+  },
+  {
+    name: "G.H. Raisoni College of Engineering, Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Private",
+    source:
+      "https://ghrce.raisoni.net/training-placement, https://www.shiksha.com/college/g-h-raisoni-college-of-engineering-nagpur-47173/placement",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 900, overallPlacementRate: 85 },
+    courses: [
+      {
+        name: "B.Tech in Computer Science Engineering",
+        shortName: "BTECH CSE",
+        duration: "4 years",
+        fees: 681000,
+        avgPackage: 560000,
+        placementRate: 80,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+      {
+        name: "B.Tech in Mechanical Engineering",
+        shortName: "BTECH ME",
+        duration: "4 years",
+        fees: 681000,
+        avgPackage: 420000,
+        placementRate: 75,
+        growthRate: 0.102,
+        discountRate: 0.08,
+        careerYears: 30,
+        stream: "Science",
+      },
+      {
+        name: "MBA in Finance",
+        shortName: "MBA FIN",
+        duration: "2 years",
+        fees: 274000,
+        avgPackage: 520000,
+        placementRate: 78,
+        growthRate: 0.095,
+        discountRate: 0.08,
+        careerYears: 28,
+        stream: "Commerce",
+      },
+    ],
+  },
+  {
+    name: "AIIMS Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Government",
+    source: "https://www.aiimsngp.edu.in/, https://collegedunia.com/mbbs/nagpur-colleges",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 175, overallPlacementRate: 95 },
+    courses: [
+      {
+        name: "MBBS (Bachelor of Medicine)",
+        shortName: "MBBS",
+        duration: "5.5 years",
+        fees: 5856,
+        avgPackage: 1800000,
+        placementRate: 98,
+        growthRate: 0.09,
+        discountRate: 0.08,
+        careerYears: 35,
+        stream: "Science",
+      },
+      {
+        name: "M.D. (Doctor of Medicine)",
+        shortName: "MD",
+        duration: "3 years",
+        fees: 50000,
+        avgPackage: 2100000,
+        placementRate: 92,
+        growthRate: 0.09,
+        discountRate: 0.08,
+        careerYears: 32,
+        stream: "Science",
+      },
+    ],
+  },
+  {
+    name: "Government Medical College, Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Government",
+    source:
+      "https://collegedunia.com/mbbs/nagpur-colleges, https://validcollege.com/college/government-medical-college-nagpur",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 250, overallPlacementRate: 93 },
+    courses: [
+      {
+        name: "MBBS (Bachelor of Medicine)",
+        shortName: "MBBS",
+        duration: "5.5 years",
+        fees: 447000,
+        avgPackage: 1650000,
+        placementRate: 95,
+        growthRate: 0.09,
+        discountRate: 0.08,
+        careerYears: 35,
+        stream: "Science",
+      },
+      {
+        name: "B.Sc (Nursing)",
+        shortName: "BSCN",
+        duration: "4 years",
+        fees: 35200,
+        avgPackage: 450000,
+        placementRate: 88,
+        growthRate: 0.085,
+        discountRate: 0.08,
+        careerYears: 33,
+        stream: "Science",
+      },
+    ],
+  },
+  {
+    name: "Indira Gandhi Government Medical College & Hospital, Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Government",
+    source:
+      "https://collegedunia.com/mbbs/nagpur-colleges, https://medicine.careers360.com/colleges/list-of-mbbs-colleges-in-nagpur",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 200, overallPlacementRate: 91 },
+    courses: [
+      {
+        name: "MBBS (Bachelor of Medicine)",
+        shortName: "MBBS",
+        duration: "5.5 years",
+        fees: 560000,
+        avgPackage: 1550000,
+        placementRate: 93,
+        growthRate: 0.09,
+        discountRate: 0.08,
+        careerYears: 35,
+        stream: "Science",
+      },
+    ],
+  },
+  {
+    name: "Maharashtra National Law University (MNLU), Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Government",
+    source:
+      "https://www.careers360.com/university/maharashtra-national-law-university-nagpur/placement, https://collegedunia.com/llb/nagpur-colleges",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 106, overallPlacementRate: 88 },
+    courses: [
+      {
+        name: "BA LLB (Bachelor of Arts + Laws)",
+        shortName: "BA LLB",
+        duration: "5 years",
+        fees: 1129000,
+        avgPackage: 700000,
+        placementRate: 90,
+        growthRate: 0.085,
+        discountRate: 0.08,
+        careerYears: 35,
+        stream: "Arts",
+      },
+      {
+        name: "BBA LLB (Bachelor of Business + Laws)",
+        shortName: "BBA LLB",
+        duration: "5 years",
+        fees: 1129000,
+        avgPackage: 750000,
+        placementRate: 88,
+        growthRate: 0.085,
+        discountRate: 0.08,
+        careerYears: 35,
+        stream: "Commerce",
+      },
+      {
+        name: "LLM (Master of Laws)",
+        shortName: "LLM",
+        duration: "2 years",
+        fees: 420000,
+        avgPackage: 550000,
+        placementRate: 82,
+        growthRate: 0.085,
+        discountRate: 0.08,
+        careerYears: 33,
+        stream: "Arts",
+      },
+    ],
+  },
+  {
+    name: "Dr. Babasaheb Ambedkar College of Law, Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Government",
+    source:
+      "https://collegedunia.com/llb/nagpur-colleges, https://www.shiksha.com/college/dr-b-r-ambedkar-college-of-law-nagpur-70351/placement",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 85, overallPlacementRate: 70 },
+    courses: [
+      {
+        name: "LLB (Bachelor of Laws)",
+        shortName: "LLB",
+        duration: "3 years",
+        fees: 52500,
+        avgPackage: 400000,
+        placementRate: 72,
+        growthRate: 0.085,
+        discountRate: 0.08,
+        careerYears: 35,
+        stream: "Arts",
+      },
+    ],
+  },
+  {
+    name: "GH Raisoni Law School, Nagpur",
+    location: "Nagpur, Maharashtra",
+    type: "Private",
+    source: "https://collegedunia.com/llb/nagpur-colleges, https://applylynk.com/colleges/law-colleges-in-nagpur",
+    overallPlacementStats: { avgStudentsPlacedPerYear: 65, overallPlacementRate: 68 },
+    courses: [
+      {
+        name: "BA LLB (Bachelor of Arts + Laws)",
+        shortName: "BA LLB",
+        duration: "5 years",
+        fees: 93000,
+        avgPackage: 380000,
+        placementRate: 70,
+        growthRate: 0.085,
+        discountRate: 0.08,
+        careerYears: 35,
+        stream: "Arts",
+      },
+      {
+        name: "LLB (Bachelor of Laws)",
+        shortName: "LLB",
+        duration: "3 years",
+        fees: 85000,
+        avgPackage: 320000,
+        placementRate: 65,
+        growthRate: 0.085,
+        discountRate: 0.08,
+        careerYears: 35,
+        stream: "Arts",
+      },
+    ],
+  },
+]
+
+/* -----------------------
+   STATIC DATA DEFINITIONS
+   ----------------------- */
+const STREAMS = [
+  { id: "arts", label: "Arts" },
+  { id: "science", label: "Science" },
+  { id: "commerce", label: "Commerce" },
+  { id: "vocational", label: "Vocational" },
+]
+
+const COLLEGE_TYPES = [
+  { id: "Government", label: "Government" },
+  { id: "Private", label: "Private" },
+]
+
+const SKILLS = [
+  { id: "communication", label: "Communication" },
+  { id: "coding", label: "Coding" },
+  { id: "management", label: "Management" },
+  { id: "research", label: "Research" },
+]
+
+const UPSKILLS = [
+  { id: "cert1", label: "Advanced Certification" },
+  { id: "cert2", label: "Professional Course" },
+]
+
+const SCHOLARSHIPS = [
+  { id: "merit", label: "Merit Scholarship" },
+  { id: "need", label: "Need-based Scholarship" },
+]
+
+const TYPE_DEFAULTS = {
+  top_tier_engineering: { timeToValue: 3, scholarshipOdds: 0.4 },
+  top_tier_medical: { timeToValue: 6, scholarshipOdds: 0.3 },
+  top_tier_law: { timeToValue: 6, scholarshipOdds: 0.3 },
+  govt_regular: { timeToValue: 6, scholarshipOdds: 0.25 },
+  private_regular: { timeToValue: 9, scholarshipOdds: 0.15 },
+}
+
+/* -----------------------
+   HELPER FUNCTIONS
+   ----------------------- */
+function classifyInstitution(college) {
+  if (!college) return "private_regular"
+  const name = (college.name || "").toLowerCase()
+  const type = (college.type || "").toLowerCase()
+
+  if (name.includes("aiims")) return "top_tier_medical"
+  if (name.includes("national law university")) return "top_tier_law"
+  if (name.includes("iit") || name.includes("nit") || name.includes("iiit")) return "top_tier_engineering"
+  if (type.includes("government")) return "govt_regular"
+  return "private_regular"
+}
+
+function getTypeDefaults(college) {
+  const key = classifyInstitution(college)
+  return TYPE_DEFAULTS[key] || { timeToValue: 6, scholarshipOdds: 0.2 }
+}
+
+const getLabel = (item) => {
+  if (!item) return ""
+  return item.label ?? item.name ?? ""
+}
+
+const currency = (x) => `₹${Number(x || 0).toLocaleString("en-IN")}`
+
+const getCoursesForStream = (streamId) => {
+  const streamName =
+    streamId === "arts"
+      ? "Arts"
+      : streamId === "science"
+        ? "Science"
+        : streamId === "commerce"
+          ? "Commerce"
+          : "Vocational"
+  const coursesMap = new Map()
+
+  INTEGRATED_COLLEGE_DATA.forEach((college) => {
+    college.courses.forEach((course) => {
+      if (course.stream === streamName && !coursesMap.has(course.shortName)) {
+        coursesMap.set(course.shortName, {
+          id: course.shortName,
+          label: course.name,
+          ...course,
+        })
+      }
+    })
+  })
+
+  return Array.from(coursesMap.values())
+}
+
+const getCollegesForTypeAndCourse = (collegeType, courseId) => {
+  return INTEGRATED_COLLEGE_DATA.filter((college) => {
+    const matchesType = college.type === collegeType
+    const hasCourse = !courseId || college.courses.some((c) => c.shortName === courseId)
+    return matchesType && hasCourse
+  }).map((college) => ({
+    id: college.name,
+    label: college.name,
+    location: college.location,
+    source: college.source,
+    ...college,
+  }))
+}
+
+const getCourseDataForCollege = (collegeName, courseId) => {
+  const college = INTEGRATED_COLLEGE_DATA.find((c) => c.name === collegeName)
+  if (!college) return null
+  return college.courses.find((c) => c.shortName === courseId) || null
+}
+
+const getCollegeData = (collegeName) => {
+  return INTEGRATED_COLLEGE_DATA.find((c) => c.name === collegeName) || null
+}
+
+const calculateMetrics = (courseData, scholarship = "", college = null) => {
+  if (!courseData) return {
+    npv: 0, roi: 0, rois: { annualized: 0, total: 0, paybackYears: 0 },
+    startingSalary: 0, employmentProb: 0, timeToValue: 0, paybackYears: 0,
+    totalCost: 0, totalFees: 0, careerYears: 0, scholarshipOdds: 0,
+  }
+
+  const fees = courseData.fees || 0
+  const avgPackage = courseData.avgPackage || 0
+  const placementRate = (courseData.placementRate || 0) / 100
+  const growthRate = courseData.growthRate || 0.05
+  const discountRate = courseData.discountRate || 0.08
+  const careerYears = courseData.careerYears || 30
+
+  const scholarshipDiscount = scholarship ? 0.2 : 0
+  const adjustedFees = fees * (1 - scholarshipDiscount)
+
+  // NPV
+  let npv = -adjustedFees
+  for (let t = 1; t <= careerYears; t++) {
+    const expectedEarnings = avgPackage * Math.pow(1 + growthRate, t - 1) * placementRate
+    npv += expectedEarnings / Math.pow(1 + discountRate, t)
+  }
+
+  // ROI
+  const annualizedROI = adjustedFees > 0 
+    ? (Math.pow(npv / adjustedFees, 1 / careerYears) - 1) * 100 
+    : 0
+  const totalROI = adjustedFees > 0 
+    ? ((npv / adjustedFees) - 1) * 100 
+    : 0
+
+  // Payback period
+  let cumulativeEarnings = 0
+  let paybackYears = careerYears
+  for (let t = 1; t <= careerYears; t++) {
+    const expectedEarnings = avgPackage * Math.pow(1 + growthRate, t - 1) * placementRate
+    const discountedEarnings = expectedEarnings / Math.pow(1 + discountRate, t)
+    cumulativeEarnings += discountedEarnings
+    if (cumulativeEarnings >= adjustedFees && paybackYears === careerYears) {
+      paybackYears = t
+      break
+    }
+  }
+
+  const institutionClass = classifyInstitution(college)
+  const { timeToValue: typeTimeToValue, scholarshipOdds: baseScholarshipOdds } 
+    = TYPE_DEFAULTS[institutionClass]
+  const timeToValue = Math.min(paybackYears, typeTimeToValue)
+
+  return {
+    npv: Math.round(npv),
+    totalFees: Math.round(fees),
+    totalCost: Math.round(adjustedFees),
+    roi: Number.parseFloat(annualizedROI.toFixed(2)),
+    rois: {
+      annualized: Number.parseFloat(annualizedROI.toFixed(2)),
+      total: Number.parseFloat(totalROI.toFixed(2)),
+      paybackYears: paybackYears
+    },
+    startingSalary: Math.round(avgPackage * placementRate),
+    employmentProb: Number.parseFloat((placementRate * 100).toFixed(2)),
+    timeToValue: Number.parseFloat(timeToValue.toFixed(1)),
+    paybackYears: paybackYears,
+    careerYears: careerYears,
+    scholarshipOdds: Number.parseFloat(baseScholarshipOdds.toFixed(1)),
+  }
+}
+
+const generateNarrative = (scenario) => {
+  if (!scenario.college) {
+    return "Please select your career path first."
+  }
+
+  const streamLabel = getLabel(STREAMS.find((s) => s.id === scenario.stream))
+  const courseData = getCourseDataForCollege(scenario.college, scenario.course)
+  const courseName = courseData?.name || scenario.course
+
+  return `You've selected ${streamLabel} stream with ${courseName} at ${scenario.college}. Your total investment will be around ${currency(scenario.totalFees || scenario.totalCost || 0)}${scenario.scholarship ? ` (${currency(scenario.totalCost)} after scholarship)` : ""}. Your expected return on investment is ${scenario.roi?.toFixed(1)}%. You have a ${((scenario.employmentProb || 0) * 100).toFixed(0)}% employment probability with a starting salary of ${currency(scenario.startingSalary)}. On average, it takes about ${scenario.timeToValue || 6} months to reach value. This path offers strong career prospects with quality returns on your educational investment.`
+}
+
+const createEmptyScenario = (id, name) => ({
+  id,
+  name,
+  stream: "",
+  course: "",
+  collegeType: "",
+  college: "",
+  skills: [],
+  upskill: [],
+  scholarship: "",
+  npv: 0,
+  roi: 0,
+  startingSalary: 0,
+  employmentProb: 0,
+  timeToValue: 0,
+  totalCost: 0,
+  totalFees: 0,
+  careerYears: 0,
+  scholarshipOdds: 0,
+  source: "",
+})
 
 /* -----------------------
    MAIN COMPONENT
    ----------------------- */
 export default function SimulatorPage() {
-  const { t } = useTranslation();
-  const [allColleges, setAllColleges] = useState("donno");
-  const [scenarios, setScenarios] = useState(SAMPLE_SCENARIOS);
-  const [activeScenarioIndex, setActiveScenarioIndex] = useState(0);
-  const active = scenarios[activeScenarioIndex] || SAMPLE_SCENARIOS[0];
+  const [scenarios, setScenarios] = useState([createEmptyScenario("sc1", "Scenario 1")])
+  const [activeScenarioIndex, setActiveScenarioIndex] = useState(0)
+  const active = scenarios[activeScenarioIndex] || createEmptyScenario("sc0", "Scenario")
 
-  // local UI state (keeps in sync with active scenario)
-  const [stream, setStream] = useState(active.stream);
-  const [course, setCourse] = useState(active.course);
-  const [collegeType, setCollegeType] = useState(active.collegeType);
-  const [college, setCollege] = useState(active.college);
-  const [skills, setSkills] = useState(active.skills || []);
-  const [upskill, setUpskill] = useState(active.upskill || []);
-  const [scholarship, setScholarship] = useState(active.scholarship || "");
-  const [playgroundMode, setPlaygroundMode] = useState(false);
-  const [govtFirst, setGovtFirst] = useState(true);
-  const [showFullChart, setShowFullChart] = useState(false);
+  const [stream, setStream] = useState("")
+  const [course, setCourse] = useState("")
+  const [collegeType, setCollegeType] = useState("")
+  const [college, setCollege] = useState("")
+  const [skills, setSkills] = useState([])
+  const [upskill, setUpskill] = useState([])
+  const [scholarship, setScholarship] = useState("")
 
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [shareContent, setShareContent] = useState("");
+  const [showFullChart, setShowFullChart] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [shareContent, setShareContent] = useState("")
+  const [showSharePdfModal, setShowSharePdfModal] = useState(false)
+  const [generatedPdfBlob, setGeneratedPdfBlob] = useState(null)
 
-  const [showSharePdfModal, setShowSharePdfModal] = useState(false);
-  const [generatedPdfBlob, setGeneratedPdfBlob] = useState(null);
-  // voice
-  const [voiceConsent, setVoiceConsent] = useState(false);
-  const [listening, setListening] = useState(false);
-  const [transcripts, setTranscripts] = useState([]);
-  const [dockExpanded, setDockExpanded] = useState(false);
-  const recognitionRef = useRef(null);
-  const synthRef = useRef(
-    typeof window !== "undefined" && window.speechSynthesis
-      ? window.speechSynthesis
-      : null
-  );
+  const [voiceConsent, setVoiceConsent] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [transcripts, setTranscripts] = useState([])
+  const [dockExpanded, setDockExpanded] = useState(false)
+  const recognitionRef = useRef(null)
+  const synthRef = useRef(typeof window !== "undefined" && window.speechSynthesis ? window.speechSynthesis : null)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
 
-  /* NEW: State for TTS pause/resume control */
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const filteredCourses = useMemo(() => {
+    if (!stream) return []
+    return getCoursesForStream(stream)
+  }, [stream])
 
-  // derived
-  const totalPoints = useMemo(
-    () =>
-      scenarios.reduce((acc, s) => acc + Math.round((s.npv || 0) / 100000), 0),
-    [scenarios]
-  );
-  const badges = useMemo(() => {
-    const out = [];
-    if (totalPoints >= 50) out.push("Career Pro");
-    if (totalPoints >= 30) out.push("Explorer");
-    if (totalPoints >= 10) out.push("Beginner");
-    return out;
-  }, [totalPoints]);
+  const filteredColleges = useMemo(() => {
+    if (!collegeType) return []
+    return getCollegesForTypeAndCourse(collegeType, course)
+  }, [collegeType, course])
 
-  const getColleges = async () => {
-    try {
-      const response = await fetch("http://localhost:8080/api/colleges", {
-        method: "GET",
-      });
+  const currentCollegeData = useMemo(() => {
+    if (!college) return null
+    return getCollegeData(college)
+  }, [college])
 
-      const data = await response.json();
-      setAllColleges(data["data"]);
-      console.log(data["data"]);
-    } catch (error) {
-      console.error("Error fetching colleges:", error);
-    }
-  };
-
-  /* Keep local UI state synced when active scenario changes */
-  useEffect(() => {
-    setStream(active?.stream || "");
-    setCourse(active?.course || "");
-    setCollegeType(active?.collegeType || "");
-    setCollege(active?.college || "");
-    setSkills(active?.skills || []);
-    setUpskill(active?.upskill || []);
-    setScholarship(active?.scholarship || "");
-    //getColleges
-    getColleges();
-  }, [activeScenarioIndex, scenarios]);
-
-  /* When stream changes update course to a sensible default */
-  useEffect(() => {
-    const list = COURSES[stream] || [];
-    if (list.length > 0 && !list.find((c) => c.id === course)) {
-      setCourse(list[0].id);
-    } else if (list.length === 0) {
-      setCourse("");
-    }
-  }, [stream]);
-
-  /* When collegeType changes pick first college */
-  useEffect(() => {
-    const list = COLLEGES[collegeType] || [];
-    if (list.length > 0 && !list.find((c) => c.id === college)) {
-      setCollege(list[0].id);
-    } else if (list.length === 0) {
-      setCollege("");
-    }
-  }, [collegeType]);
-
-  /* Voice: setup / teardown SpeechRecognition */
-  useEffect(() => {
-    if (!voiceConsent) {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.onresult = null;
-          recognitionRef.current.onend = null;
-          recognitionRef.current.onerror = null;
-          recognitionRef.current = null;
-        } catch {}
+  const currentMetrics = useMemo(() => {
+    if (!college || !course) {
+      return {
+        npv: 0,
+        roi: 0,
+        startingSalary: 0,
+        employmentProb: 0,
+        timeToValue: 0,
+        totalCost: 0,
+        totalFees: 0,
+        careerYears: 0,
+        scholarshipOdds: 0,
       }
-      return;
     }
+    const courseData = getCourseDataForCollege(college, course)
+    const collegeData = getCollegeData(college)
+    return calculateMetrics(courseData, scholarship, collegeData)
+  }, [college, course, scholarship])
 
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition || null;
-    if (!SpeechRecognition) {
-      console.warn("SpeechRecognition not available in this browser.");
-      return;
-    }
+  const isSelectionComplete = stream && course && collegeType && college
 
-    const recognition = new SpeechRecognition();
-    switch (i18n.language) {
-      case "en":
-        recognition.lang = "Google Canada English";
-        break;
-      case "ur":
-        recognition.lang = "ur-PK";
-        break;
-      default:
-        recognition.lang = "hi-IN";
+  const totalPoints = useMemo(
+    () => scenarios.reduce((acc, s) => acc + Math.round((s.npv || 0) / 100000), 0),
+    [scenarios],
+  )
+
+  const badges = useMemo(() => {
+    const out = []
+    if (totalPoints >= 50) out.push("Career Pro")
+    if (totalPoints >= 30) out.push("Explorer")
+    if (totalPoints >= 10) out.push("Beginner")
+    return out
+  }, [totalPoints])
+
+  const saveActiveChanges = () => {
+    const updated = [...scenarios]
+    updated[activeScenarioIndex] = {
+      ...active,
+      stream,
+      course,
+      collegeType,
+      college,
+      skills,
+      upskill,
+      scholarship,
+      ...currentMetrics,
     }
-    recognition.interimResults = false;
-    recognition.continuous = false;
+    setScenarios(updated)
+  }
+
+  const resetSelection = () => {
+    setStream("")
+    setCourse("")
+    setCollegeType("")
+    setCollege("")
+    setSkills([])
+    setUpskill([])
+    setScholarship("")
+  }
+
+  const addScenario = () => {
+    const newId = `sc${scenarios.length + 1}`
+    const newScenario = createEmptyScenario(newId, `Scenario ${scenarios.length + 1}`)
+    setScenarios([...scenarios, newScenario])
+    setActiveScenarioIndex(scenarios.length)
+  }
+
+  const deleteScenario = (idx) => {
+    if (scenarios.length === 1) return
+    const updated = scenarios.filter((_, i) => i !== idx)
+    setScenarios(updated)
+    if (activeScenarioIndex >= updated.length) {
+      setActiveScenarioIndex(Math.max(0, updated.length - 1))
+    }
+  }
+
+  const toggleSkill = (skillId) => {
+    setSkills((prev) => (prev.includes(skillId) ? prev.filter((id) => id !== skillId) : [...prev, skillId]))
+  }
+
+  const toggleUpskill = (upskillId) => {
+    setUpskill((prev) => (prev.includes(upskillId) ? prev.filter((id) => id !== upskillId) : [...prev, upskillId]))
+  }
+
+  const playTts = (text) => {
+    if (!synthRef.current) return
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = 0.9
+    synthRef.current.speak(utterance)
+    setIsSpeaking(true)
+    utterance.onend = () => setIsSpeaking(false)
+  }
+
+  const handlePauseTts = () => {
+    if (!synthRef.current) return
+    if (isPaused) {
+      synthRef.current.resume()
+      setIsPaused(false)
+    } else {
+      synthRef.current.pause()
+      setIsPaused(true)
+    }
+  }
+
+  const handleRestartTts = () => {
+    if (!synthRef.current) return
+    synthRef.current.cancel()
+    setIsSpeaking(false)
+    setIsPaused(false)
+  }
+
+  const handleExportSummary = async () => {
+    if (!isSelectionComplete) return
+    const narrativeText = generateNarrative({ stream, course, collegeType, college, ...currentMetrics })
+    const blob = new Blob([narrativeText], { type: "text/plain;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "career-summary.txt"
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleShareSummary = () => {
+    if (!isSelectionComplete) return
+    setShareContent(generateNarrative({ stream, course, collegeType, college, ...currentMetrics }))
+    setShowShareModal(true)
+  }
+
+  const generateShareContent = () => {
+    return generateNarrative({ stream, course, collegeType, college, ...currentMetrics })
+  }
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) return
+    if (listening) {
+      recognitionRef.current.stop()
+      setListening(false)
+    } else {
+      recognitionRef.current.start()
+      setListening(true)
+    }
+  }
+
+  useEffect(() => {
+    if (!voiceConsent) return
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null
+    if (!SpeechRecognition) return
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = "en-US"
+    recognition.interimResults = false
+    recognition.continuous = false
 
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results)
         .map((result) => result[0].transcript)
-        .join("");
-      setTranscripts((prev) => [...prev, transcript]);
-    };
+        .join("")
+      setTranscripts((prev) => [...prev, transcript])
+    }
+    recognition.onerror = () => setListening(false)
+    recognition.onend = () => setListening(false)
 
-    recognition.onerror = (err) => {
-      console.warn("Speech recognition error:", err);
-      setListening(false);
-    };
-
-    recognition.onend = () => setListening(false);
-
-    recognitionRef.current = recognition;
-
+    recognitionRef.current = recognition
     return () => {
-      try {
-        recognition.onresult = null;
-        recognition.onend = null;
-        recognition.onerror = null;
-        recognitionRef.current = null;
-      } catch {}
-    };
-  }, [voiceConsent, i18n.language]);
+      if (recognitionRef.current) {
+        recognitionRef.current.abort()
+      }
+    }
+  }, [voiceConsent])
 
-  const toggleListening = () => {
-    if (!voiceConsent) {
-      alert(t("consentMic"));
-      return;
-    }
-    const rec = recognitionRef.current;
-    if (!rec) {
-      alert("Speech recognition is not available in this browser.");
-      return;
-    }
-    if (listening) {
-      try {
-        rec.stop();
-      } catch {}
-      setListening(false);
+  useEffect(() => {
+    setStream(active?.stream || "")
+    setCourse(active?.course || "")
+    setCollegeType(active?.collegeType || "")
+    setCollege(active?.college || "")
+    setSkills(active?.skills || [])
+    setUpskill(active?.upskill || [])
+    setScholarship(active?.scholarship || "")
+  }, [activeScenarioIndex, active])
+
+  useEffect(() => {
+    if (stream) {
+      const courses = getCoursesForStream(stream)
+      if (courses.length > 0 && !courses.find((c) => c.id === course)) {
+        setCourse("")
+      }
     } else {
-      try {
-        rec.start();
-        setListening(true);
-      } catch (err) {
-        console.warn("Failed to start recognition", err);
-        setListening(false);
+      setCourse("")
+    }
+  }, [stream])
+
+  useEffect(() => {
+    if (collegeType && course) {
+      const colleges = getCollegesForTypeAndCourse(collegeType, course)
+      if (colleges.length > 0 && !colleges.find((c) => c.id === college)) {
+        setCollege("")
       }
+    } else {
+      setCollege("")
     }
-  };
-  const generateShareContent = (scenario) => {
-    const streamLabel = getLabel(
-      STREAMS.find((s) => s.id === scenario.stream),
-      i18n.language
-    );
-    const courseLabel = getLabel(
-      (COURSES[scenario.stream] || []).find((c) => c.id === scenario.course),
-      i18n.language
-    );
-
-    return `🎓 My Career Analysis Report
-
-📊 Stream: ${streamLabel}
-📚 Course: ${courseLabel}
-💰 ROI: ${scenario.roi?.toFixed(2)}x
-📈 Employment: ${((scenario.employmentProb || 0) * 100).toFixed(0)}%
-💵 Starting Salary: ${currency(scenario.startingSalary || 0)}
-⏱️ Time to Job: ${scenario.timeToJob} months
-🎯 NPV: ${currency(scenario.npv || 0)}
-
-Generated via Career Simulator`;
-  };
-
-  const handleShareSummary = async () => {
-    try {
-      if (!generatedPdfBlob) {
-        // Generate PDF as blob if not already generated
-        const pdfBlob = await exportSummary({
-          scenarios,
-          STREAMS,
-          COURSES,
-          COLLEGE_TYPES,
-          COLLEGES,
-          SKILLS,
-          UPSKILLS,
-          SCHOLARSHIPS,
-          t,
-          i18n,
-          currency,
-          getLabel,
-          returnBlob: true, // Request blob instead of download
-        });
-        if (pdfBlob) {
-          setGeneratedPdfBlob(pdfBlob);
-          setShowSharePdfModal(true);
-        }
-      } else {
-        setShowSharePdfModal(true);
-      }
-    } catch (err) {
-      console.warn("Share PDF failed:", err);
-    }
-  };
-
-  const handleExportSummary = async () => {
-    try {
-      const pdfBlob = await exportSummary({
-        scenarios,
-        STREAMS,
-        COURSES,
-        COLLEGE_TYPES,
-        COLLEGES,
-        SKILLS,
-        UPSKILLS,
-        SCHOLARSHIPS,
-        t,
-        i18n,
-        currency,
-        getLabel,
-        returnBlob: true,
-      });
-
-      if (pdfBlob) {
-        // Download the PDF
-        const url = URL.createObjectURL(pdfBlob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `career_analysis_${
-          new Date().toISOString().split("T")[0]
-        }.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
-        // Also save it for sharing
-        setGeneratedPdfBlob(pdfBlob);
-      }
-    } catch (err) {
-      console.warn("Export failed:", err);
-    }
-  };
-
-  /* NEW: Handle pause/resume and restart for TTS */
-  const handlePauseTts = () => {
-    if (synthRef.current) {
-      if (isPaused) {
-        synthRef.current.resume();
-        setIsPaused(false);
-      } else {
-        synthRef.current.pause();
-        setIsPaused(true);
-      }
-    }
-  };
-
-  const handleRestartTts = () => {
-    if (synthRef.current) {
-      synthRef.current.cancel();
-      setIsSpeaking(false);
-      setIsPaused(false);
-    }
-  };
-
-  /* TTS */
-  const playTts = (text) => {
-    if (!text || typeof text !== "string") return;
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      alert("Your browser doesn't support text-to-speech.");
-      return;
-    }
-    try {
-      if (synthRef.current && synthRef.current.speaking)
-        synthRef.current.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      switch (i18n.language) {
-        case "en":
-          u.lang = "Google Canada English";
-          break;
-        case "ur":
-          u.lang = "ur-PK";
-          break;
-        default:
-          u.lang = "hi-IN";
-      }
-      u.rate = 1;
-      u.pitch = 1;
-
-      /* NEW: Update speaking state */
-      u.onstart = () => {
-        setIsSpeaking(true);
-        setIsPaused(false);
-      };
-      u.onend = () => {
-        setIsSpeaking(false);
-        setIsPaused(false);
-      };
-
-      synthRef.current.speak(u);
-    } catch (err) {
-      console.warn("TTS failed:", err);
-    }
-  };
-
-  //   try {
-  //     const doc = new jsPDF({
-  //       orientation: "portrait",
-  //       unit: "pt",
-  //       format: "A4",
-  //     });
-
-  //     const colHeaders = [
-  //       "Scenario",
-  //       "Name",
-  //       "Stream",
-  //       "Course",
-  //       "College Type",
-  //       "College",
-  //       "Skills",
-  //       "Upskill",
-  //       "Scholarship",
-  //       "NPV",
-  //       "ROI",
-  //       "Employment Prob.",
-  //       "Starting Salary",
-  //       "Time to Job",
-  //       "Scholarship Odds",
-  //     ];
-
-  //     const rows = scenarios.map((s, i) => [
-  //       `${i + 1}`,
-  //       s.name || `${t("scenario")} ${i + 1}`,
-  //       getLabel(STREAMS.find((st) => st.id === s.stream), i18n.language) || "",
-  //       getLabel(
-  //         (COURSES[s.stream] || []).find((c) => c.id === s.course),
-  //         i18n.language
-  //       ) || "",
-  //       getLabel(
-  //         COLLEGE_TYPES.find((ct) => ct.id === s.collegeType),
-  //         i18n.language
-  //       ) || "",
-  //       getLabel(
-  //         (COLLEGES[s.collegeType] || []).find((cl) => cl.id === s.college),
-  //         i18n.language
-  //       ) || "",
-  //       (s.skills || [])
-  //         .map((sk) =>
-  //           getLabel(SKILLS.find((skl) => skl.id === sk), i18n.language)
-  //         )
-  //         .join(", "),
-  //       (s.upskill || [])
-  //         .map((u) =>
-  //           getLabel(UPSKILLS.find((up) => up.id === u), i18n.language)
-  //         )
-  //         .join(", "),
-  //       getLabel(
-  //         SCHOLARSHIPS.find((sch) => sch.id === s.scholarship),
-  //         i18n.language
-  //       ) || "",
-  //       s.npv ? currency(s.npv) : "-",
-  //       s.roi ?? "-",
-  //       s.employmentProb ? `${(s.employmentProb * 100).toFixed(1)}%` : "-",
-  //       s.startingSalary ? currency(s.startingSalary) : "-",
-  //       s.timeToJob ? `${s.timeToJob} ${t("months")}` : "-",
-  //       s.scholarshipOdds ? `${(s.scholarshipOdds * 100).toFixed(1)}%` : "-",
-  //     ]);
-
-  //     // Add title
-  //     doc.setFontSize(18);
-  //     doc.text("Career Analysis Report", 40, 40);
-
-  //     // Line break
-  //     doc.setFontSize(12);
-  //     doc.text(
-  //       `Generated on: ${new Date().toLocaleDateString()}`,
-  //       40,
-  //       60
-  //     );
-
-  //     autoTable(doc, {
-  //   head: [colHeaders],
-  //   body: rows,
-  //   startY: 80,
-  //   margin: { left: 40, right: 40 },
-  //   styles: {
-  //     fontSize: 8,
-  //     cellPadding: 4,
-  //   },
-  //   headStyles: {
-  //     fillColor: [56, 90, 190],
-  //     textColor: 255,
-  //   },
-  //   alternateRowStyles: {
-  //     fillColor: [240, 240, 240],
-  //   },
-  // });
-
-  //     doc.save("career_summary.pdf");
-
-  //   } catch (err) {
-  //     console.warn("Export failed:", err);
-  //   }
-  // };
-
-  // Dynamic perks for military.
-  const dynamicPerks = useMemo(() => {
-    const base = { ...PERKS };
-    if (stream === "public_service") {
-      base.jobSecurity.score = 10;
-      base.pension.coverage = "100%";
-      base.competition.ratio = "1:200"; // High entry, low turnover.
-      base.postings.variety = "Global Deployments";
-    }
-    return base;
-  }, [stream]);
-  /* Small helpers */
-  const toggleSkill = (id) =>
-    setSkills((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  const toggleUpskill = (id) =>
-    setUpskill((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-
-  /* Playground auto-experiment - same behavior but with small UI tweak */
-  const autoExperiment = () => {
-    setScenarios((prevScenarios) => {
-      if (prevScenarios.length === 0) return prevScenarios;
-      const newScenarios = [...prevScenarios];
-      const activeScenario = { ...newScenarios[activeScenarioIndex] };
-      const newStream = STREAMS[Math.floor(Math.random() * STREAMS.length)].id;
-      activeScenario.stream = newStream;
-      const coursesForStream = COURSES[newStream] || [];
-      activeScenario.course =
-        coursesForStream.length > 0
-          ? coursesForStream[
-              Math.floor(Math.random() * coursesForStream.length)
-            ].id
-          : "";
-      const newCollegeType =
-        COLLEGE_TYPES[Math.floor(Math.random() * COLLEGE_TYPES.length)].id;
-      activeScenario.collegeType = newCollegeType;
-      const collegesForType = COLLEGES[newCollegeType] || [];
-      activeScenario.college =
-        collegesForType.length > 0
-          ? collegesForType[Math.floor(Math.random() * collegesForType.length)]
-              .id
-          : "";
-      const skillCount = Math.floor(Math.random() * 2) + 1;
-      activeScenario.skills = SKILLS.sort(() => 0.5 - Math.random())
-        .slice(0, skillCount)
-        .map((s) => s.id);
-      const upskillCount = Math.floor(Math.random() * 2);
-      activeScenario.upskill = UPSKILLS.sort(() => 0.5 - Math.random())
-        .slice(0, upskillCount)
-        .map((u) => u.id);
-      activeScenario.scholarship =
-        Math.random() > 0.5
-          ? SCHOLARSHIPS[Math.floor(Math.random() * SCHOLARSHIPS.length)].id
-          : "";
-      const perturb = (v, pct = 0.12) =>
-        Math.round(v * (1 + (Math.random() * 2 - 1) * pct));
-      activeScenario.npv = perturb(activeScenario.npv || 800000);
-      activeScenario.roi = +(
-        (activeScenario.roi || 1.2) *
-        (1 + (Math.random() * 2 - 1) * 0.05)
-      ).toFixed(2);
-      activeScenario.employmentProb = Math.min(
-        1,
-        Math.max(
-          0,
-          (activeScenario.employmentProb || 0.6) +
-            (Math.random() * 2 - 1) * 0.05
-        )
-      );
-      activeScenario.startingSalary = perturb(
-        activeScenario.startingSalary || 300000
-      );
-      activeScenario.timeToJob = Math.max(
-        1,
-        Math.round(
-          (activeScenario.timeToJob || 6) * (1 + (Math.random() * 2 - 1) * 0.15)
-        )
-      );
-      activeScenario.scholarshipOdds = Math.min(
-        1,
-        Math.max(
-          0,
-          (activeScenario.scholarshipOdds || 0.4) +
-            (Math.random() * 2 - 1) * 0.05
-        )
-      );
-      newScenarios[activeScenarioIndex] = activeScenario;
-      return newScenarios;
-    });
-    setPlaygroundMode(true);
-    setTimeout(() => setPlaygroundMode(false), 2200);
-  };
-
-  const languages = [
-    { code: "en", name: "English" },
-    { code: "hi", name: "हिंदी" },
-    { code: "ur", name: "اردو" },
-    { code: "dogri", name: "डोगरी" },
-    { code: "gojri", name: "गोजरी" },
-    { code: "pahari", name: "पहाड़ी" },
-  ];
-
-  /* Apply local edits back to scenarios (Save changes to active scenario) */
-  const saveActiveChanges = () => {
-    setScenarios((prev) => {
-      const copy = [...prev];
-      const s = { ...(copy[activeScenarioIndex] || {}) };
-      s.stream = stream;
-      s.course = course;
-      s.collegeType = collegeType;
-      s.college = college;
-      s.skills = skills;
-      s.upskill = upskill;
-      s.scholarship = scholarship;
-      copy[activeScenarioIndex] = s;
-      return copy;
-    });
-  };
-  {
-    showFullChart && (
-      <div className="fixed inset-0 bg-white z-[9999] flex flex-col">
-        {/* Top Bar */}
-        <div className="w-full p-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center shadow-lg">
-          <h2 className="text-lg font-semibold">
-            Full Screen Career Flowchart
-          </h2>
-
-          <button
-            onClick={() => setShowFullChart(false)}
-            className="px-4 py-2 bg-white/20 rounded-md hover:bg-white/30 transition flex items-center gap-2"
-          >
-            <span>Close</span>
-          </button>
-        </div>
-
-        {/* Full Screen Chart Container */}
-        <div
-          className="flex-1 relative overflow-hidden w-full"
-          style={{ height: 384 }}
-        >
-          <FlowChart
-            active={active}
-            getLabel={getLabel}
-            lang={i18n.language}
-            t={t}
-            dynamicPerks={dynamicPerks}
-            fullscreen
-          />
-        </div>
-      </div>
-    );
-  }
+  }, [collegeType, course])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-indigo-100 text-gray-900 font-sans selection:bg-indigo-300 selection:text-white">
-      {/* HERO */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-indigo-100 text-gray-900 font-sans">
+      {/* HEADER SECTION */}
+      <header className="max-w-7xl mx-auto px-6 py-8">
         <div className="rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 text-white">
           <div className="max-w-2xl">
             <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-lg leading-tight">
-              {t("title")}
+              Disha Lab
             </h1>
             <p className="mt-2 text-base md:text-lg opacity-95">
-              {t("subtitle")}
+              Explore your career options with data-driven insights
             </p>
+          </div>
 
-            <div className="mt-4 flex flex-wrap gap-3 items-center">
+          {/* Header Stats */}
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <div className="text-sm opacity-80">Total Scenarios</div>
+              <div className="text-2xl md:text-3xl font-extrabold">{scenarios.length}</div>
+            </div>
+            <div className="bg-white bg-opacity-20 rounded-xl px-5 py-3 flex items-center gap-4">
+              <Target className="w-7 h-7 text-white" aria-hidden="true" />
+              <div>
+                <div className="text-xs opacity-80">Points</div>
+                <div className="font-semibold">{totalPoints}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT GRID */}
+      <main className="max-w-7xl mx-auto px-6 pb-40 grid grid-cols-1 md:grid-cols-12 gap-8">
+        {/* LEFT SIDEBAR: Input Controls */}
+        <aside className="md:col-span-4 bg-white rounded-3xl p-6 shadow-xl border border-indigo-100">
+          <h2 className="text-lg font-semibold mb-4 text-indigo-700">Select Your Career Path</h2>
+
+          <form className="space-y-4">
+            {/* Stream Selection */}
+            <div>
+              <label htmlFor="stream-select" className="block text-sm text-indigo-700 mb-2 font-semibold">
+                Stream
+              </label>
               <select
-                value={i18n.language}
-                onChange={(e) => i18n.changeLanguage(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm bg-white/10 text-white border border-white/20 focus:outline-none"
-                aria-label="Select language"
+                id="stream-select"
+                value={stream}
+                onChange={(e) => setStream(e.target.value)}
+                className="w-full rounded-xl p-3 border border-indigo-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                {languages.map(({ code, name }) => (
-                  <option key={code} value={code} className="text-black">
-                    {name}
+                <option value="">-- Select Stream --</option>
+                {STREAMS.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {getLabel(s)}
                   </option>
                 ))}
               </select>
+            </div>
 
-              <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={govtFirst}
-                  onChange={() => setGovtFirst(!govtFirst)}
-                  className="h-5 w-5 rounded border-transparent focus:ring-2 focus:ring-offset-1 focus:ring-white cursor-pointer"
-                />
-                <span className="text-white font-semibold">
-                  {t("governmentFirst")}
-                </span>
+            {/* Course Selection */}
+            <div>
+              <label htmlFor="course-select" className="block text-sm text-indigo-700 mb-2 font-semibold">
+                Course
               </label>
-
-              <button
-                onClick={autoExperiment}
-                className="ml-2 inline-flex items-center gap-2 bg-white text-indigo-700 px-3 py-2 rounded-lg font-semibold shadow-sm hover:shadow-md"
-                title="Auto experiment"
+              <select
+                id="course-select"
+                value={course}
+                onChange={(e) => setCourse(e.target.value)}
+                disabled={!stream}
+                className="w-full rounded-xl p-3 border border-indigo-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Target className="w-4 h-4" />
-                {t("autoExperiment")}
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <div className="text-sm opacity-80">{t("totalScenarios")}</div>
-              <div className="text-2xl md:text-3xl font-extrabold">
-                {scenarios.length}
-              </div>
+                <option value="">-- Select Course --</option>
+                {filteredCourses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {getLabel(c)}
+                  </option>
+                ))}
+              </select>
+              {stream && filteredCourses.length === 0 && (
+                <p className="text-xs text-orange-500 mt-1">No courses available for this stream</p>
+              )}
             </div>
 
-            <motion.div
-              initial={{ scale: 0.98 }}
-              animate={playgroundMode ? { scale: [1, 1.03, 1] } : { scale: 1 }}
-              transition={{ duration: 1.2 }}
-              className="bg-white bg-opacity-20 rounded-xl px-5 py-3 flex items-center gap-4"
-            >
-              <Target className="w-7 h-7 text-white" />
-              <div>
-                <div className="text-xs opacity-80">{t("engagement")}</div>
-                <div className="font-semibold">{t("high")}</div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
+            {/* College Type Selection */}
+            <div>
+              <label htmlFor="college-type-select" className="block text-sm text-indigo-700 mb-2 font-semibold">
+                College Type
+              </label>
+              <select
+                id="college-type-select"
+                value={collegeType}
+                onChange={(e) => setCollegeType(e.target.value)}
+                disabled={!course}
+                className="w-full rounded-xl p-3 border border-indigo-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">-- Select Type --</option>
+                {COLLEGE_TYPES.map((ct) => (
+                  <option key={ct.id} value={ct.id}>
+                    {getLabel(ct)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      {/* GRID LAYOUT */}
-      <div className="max-w-7xl mx-auto px-6 pb-40 grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* LEFT: Controls */}
-        <aside className="md:col-span-3 bg-white rounded-3xl p-6 shadow-xl sticky top-24 border border-indigo-100">
-          <h3 className="text-lg font-semibold mb-4 text-indigo-700">
-            {t("stream")} & {t("course")}
-          </h3>
-
-          <div className="space-y-4">
-            <Select
-              label={t("stream")}
-              value={stream}
-              options={STREAMS}
-              lang={i18n.language}
-              onChange={setStream}
-            />
-            <Select
-              label={t("course")}
-              value={course}
-              options={COURSES[stream] || []}
-              lang={i18n.language}
-              onChange={setCourse}
-              disabled={!stream}
-            />
-            <Select
-              label={t("collegeType")}
-              value={collegeType}
-              options={COLLEGE_TYPES}
-              lang={i18n.language}
-              onChange={setCollegeType}
-            />
-            <Select
-              label={t("college")}
-              value={college}
-              options={COLLEGES[collegeType] || []}
-              lang={i18n.language}
-              onChange={setCollege}
-              disabled={!collegeType}
-            />
-          </div>
+            {/* College Selection */}
+            <div>
+              <label htmlFor="college-select" className="block text-sm text-indigo-700 mb-2 font-semibold">
+                College
+              </label>
+              <select
+                id="college-select"
+                value={college}
+                onChange={(e) => setCollege(e.target.value)}
+                disabled={!collegeType}
+                className="w-full rounded-xl p-3 border border-indigo-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">-- Select College --</option>
+                {filteredColleges.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {getLabel(c)}
+                  </option>
+                ))}
+              </select>
+              {collegeType && filteredColleges.length === 0 && (
+                <p className="text-xs text-orange-500 mt-1">No colleges offer this course</p>
+              )}
+            </div>
+          </form>
 
           <hr className="my-5 border-indigo-100" />
 
-          <div>
+          {/* Skills Section */}
+          {/* <fieldset>
+            <legend className="text-sm font-semibold text-indigo-700 mb-3">Skills</legend>
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-indigo-700">{t("skills")}</h4>
               <button
                 onClick={() => setSkills([])}
                 className="text-sm text-indigo-500 hover:underline"
+                aria-label="Clear all selected skills"
               >
-                {t("clear")}
+                Clear
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {SKILLS.map((s) => (
-                <Chip
+                <button
                   key={s.id}
-                  active={skills.includes(s.id)}
                   onClick={() => toggleSkill(s.id)}
+                  aria-pressed={skills.includes(s.id)}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold border transition ${
+                    skills.includes(s.id)
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                      : "bg-white border-indigo-100 text-indigo-700"
+                  }`}
                 >
-                  {getLabel(s, i18n.language)}
-                </Chip>
+                  {getLabel(s)}
+                </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
-          <div className="mt-4">
+          {/* Upskill Section */}
+          {/* <fieldset className="mt-4">
+            <legend className="text-sm font-semibold text-indigo-700 mb-3">Upskill</legend>
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-indigo-700">{t("upskill")}</h4>
               <button
                 onClick={() => setUpskill([])}
                 className="text-sm text-indigo-500 hover:underline"
+                aria-label="Clear all selected upskills"
               >
-                {t("clear")}
+                Clear
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {UPSKILLS.map((u) => (
-                <Chip
+                <button
                   key={u.id}
-                  active={upskill.includes(u.id)}
                   onClick={() => toggleUpskill(u.id)}
+                  aria-pressed={upskill.includes(u.id)}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold border transition ${
+                    upskill.includes(u.id)
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                      : "bg-white border-indigo-100 text-indigo-700"
+                  }`}
                 >
-                  {getLabel(u, i18n.language)}
-                </Chip>
+                  {getLabel(u)}
+                </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
-          <div className="mt-4">
-            <label className="block mb-2 font-semibold text-indigo-700">
-              {t("scholarships")}
+          {/* Scholarship Section */}
+          {/* <div className="mt-4">
+            <label htmlFor="scholarship-select" className="block mb-2 font-semibold text-indigo-700">
+              Scholarship
             </label>
             <select
+              id="scholarship-select"
               value={scholarship}
               onChange={(e) => setScholarship(e.target.value)}
-              className="w-full rounded-lg p-3 border border-indigo-100 focus:outline-none"
+              className="w-full rounded-lg p-3 border border-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="">{`-- ${t("select")} --`}</option>
+              <option value="">-- Select --</option>
               {SCHOLARSHIPS.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {getLabel(s, i18n.language)}
+                  {getLabel(s)}
                 </option>
               ))}
             </select>
-          </div>
+          </div>  */}
+           
 
+          {/* Action Buttons */}
           <div className="mt-6 flex gap-3">
             <button
-              onClick={() => {
-                const copy = [...scenarios];
-                copy.push({
-                  ...copy[activeScenarioIndex],
-                  id: `sc${Date.now()}`,
-                  name: `${t("scenario")} ${copy.length + 1}`,
-                });
-                setScenarios(copy);
-                setActiveScenarioIndex(copy.length - 1);
-              }}
-              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl py-3 font-semibold shadow"
+              onClick={saveActiveChanges}
+              disabled={!isSelectionComplete}
+              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl py-3 font-semibold shadow disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
+              aria-label="Save current scenario"
             >
-              + {t("addScenario")}
+              Save Scenario
             </button>
             <button
-              onClick={() => {
-                setStream("");
-                setCourse("");
-                setCollegeType("");
-                setCollege("");
-                setSkills([]);
-                setUpskill([]);
-                setScholarship("");
-              }}
-              className="px-4 py-3 border border-indigo-100 rounded-2xl text-indigo-700"
+              onClick={resetSelection}
+              className="px-4 py-3 border border-indigo-100 rounded-2xl text-indigo-700 hover:bg-indigo-50 transition"
+              aria-label="Reset all selections"
             >
-              {t("reset")}
+              Reset
             </button>
           </div>
 
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={saveActiveChanges}
-              className="flex-1 bg-white border border-indigo-100 rounded-full py-2 text-indigo-700"
-            >
-              Save
-            </button>
-            <button
-              onClick={() =>
-                exportSummary({
-                  scenarios,
-                  STREAMS,
-                  COURSES,
-                  COLLEGE_TYPES,
-                  COLLEGES,
-                  SKILLS,
-                  UPSKILLS,
-                  SCHOLARSHIPS,
-                  t,
-                  i18n,
-                  currency,
-                  getLabel,
-                })
-              }
-              className="px-4 py-2 bg-indigo-50 rounded-full"
-            >
-              Export
-            </button>
-          </div>
+          <button
+            onClick={addScenario}
+            className="mt-3 w-full flex items-center justify-center gap-2 border-2 border-dashed border-indigo-200 rounded-2xl py-3 text-indigo-600 hover:bg-indigo-50 transition"
+            aria-label="Add a new scenario"
+          >
+            <Plus className="w-4 h-4" aria-hidden="true" /> Add New Scenario
+          </button>
         </aside>
 
-        {/* CENTER: Visualizer */}
-        <main className="lg:col-span-5">
+        {/* CENTER: Summary Section */}
+        <section className="md:col-span-5">
           <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-200">
-            {/* Header Section */}
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                {active?.name || `Scenario ${activeScenarioIndex + 1}`}
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Interactive Career Path Visualization
-              </p>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Career Summary</h2>
+              {!isSelectionComplete && (
+                <p className="text-sm text-orange-500" role="alert">
+                  Complete your selection to see metrics
+                </p>
+              )}
             </div>
 
-            {/* Top Stats Row */}
-            <div className="flex gap-4 mb-8">
-              <StatPill
-                icon={<GraduationCap className="w-5 h-5 text-blue-600" />}
-                label="ROI"
-                value={`${active?.roi?.toFixed(2) || "-"}x`}
-              />
-              <StatPill
-                icon={<Users className="w-5 h-5 text-blue-400" />}
-                label="Employment %"
-                value={`${((active?.employmentProb || 0) * 100).toFixed(0)}%`}
-              />
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* ROI Card */}
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-5 h-5 text-green-600" aria-hidden="true" />
+                  <span className="text-sm font-semibold text-green-700">ROI</span>
+                </div>
+                <p className="text-2xl font-bold text-green-800">
+                  {isSelectionComplete ? `${currentMetrics.roi?.toFixed(1)}%` : "-"}
+                </p>
+              </div>
+
+              {/* NPV Card */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-5 h-5 text-blue-600" aria-hidden="true" />
+                  <span className="text-sm font-semibold text-blue-700">NPV</span>
+                </div>
+                <p className="text-2xl font-bold text-blue-800">
+                  {isSelectionComplete ? currency(currentMetrics.npv) : "-"}
+                </p>
+              </div>
+
+              {/* Starting Salary Card */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <GraduationCap className="w-5 h-5 text-purple-600" aria-hidden="true" />
+                  <span className="text-sm font-semibold text-purple-700">Starting Salary</span>
+                </div>
+                <p className="text-2xl font-bold text-purple-800">
+                  {isSelectionComplete ? currency(currentMetrics.startingSalary) : "-"}
+                </p>
+              </div>
+
+              {/* Employment Card */}
+              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-5 h-5 text-indigo-600" aria-hidden="true" />
+                  <span className="text-sm font-semibold text-indigo-700">Employment</span>
+                </div>
+                <p className="text-2xl font-bold text-indigo-800">
+                  {isSelectionComplete ? `${((currentMetrics.employmentProb || 0)).toFixed(0)}%` : "-"}
+                </p>
+              </div>
             </div>
 
-            {showFullChart && (
-              <FullScreenFlowChart
-                onClose={() => setShowFullChart(false)}
-                active={active}
-                getLabel={getLabel}
-                lang={i18n.language}
-                t={t}
-                dynamicPerks={dynamicPerks}
-              />
-            )}
+            {/* Additional Stats */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-6">
+              <h3 className="sr-only">Additional Statistics</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <IndianRupee className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <span className="text-gray-500">Total Fees:</span>
+                  <span className="ml-auto font-semibold">
+                    {isSelectionComplete ? currency(currentMetrics.totalFees) : "-"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IndianRupee className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <span className="text-gray-500">After Scholarship:</span>
+                  <span className="ml-auto font-semibold">
+                    {isSelectionComplete ? currency(currentMetrics.totalCost) : "-"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                  <span className="text-gray-500">Time to Value:</span>
+                  <span className="ml-auto font-semibold">
+                    {isSelectionComplete ? `${currentMetrics.timeToValue} months` : "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Career Years:</span>
+                  <span className="ml-2 font-semibold">{isSelectionComplete ? currentMetrics.careerYears : "-"}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-gray-500">Scholarship Odds:</span>
+                  <span className="ml-2 font-semibold">
+                    {isSelectionComplete && scholarship ? `${(currentMetrics.scholarshipOdds * 100).toFixed(0)}%` : "-"}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-            {/* Flowchart Visualization Area - LARGE SPACE */}
-            {!showFullChart && (
-              <FlowChartEmbedded
-                onExpand={() => setShowFullChart(true)}
-                active={active}
-              />
-            )}
-
-            {/* Key Metrics Cards */}
-            <div className="space-y-3 mb-8 mt-4">
-              <div className="rounded-xl p-4 border border-gray-200 bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-gray-500 font-semibold">
-                      Starting Salary
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      {currency(active?.startingSalary || 0)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-gray-500 font-semibold">
-                      Time to Job
-                    </div>
-                    <div className="text-xl font-bold text-gray-900">
-                      {active?.timeToJob} months
+            {/* Data Source */}
+            {isSelectionComplete && currentCollegeData?.source && (
+              <div className="bg-indigo-50 rounded-xl p-4 mb-6 border border-indigo-100">
+                <div className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-indigo-700 mb-1">Data Source</h3>
+                    <p className="text-xs text-gray-600 mb-2">Verify placement data from official sources:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {currentCollegeData.source.split(",").map((url, idx) => (
+                        <a
+                          key={idx}
+                          href={url.trim()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs bg-white px-2 py-1 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-100 transition truncate max-w-[200px]"
+                          aria-label={`Open source link for ${new URL(url.trim()).hostname}`}
+                        >
+                          <ExternalLink className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+                          <span className="truncate">{new URL(url.trim()).hostname}</span>
+                        </a>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
+            )}
 
-              <div className="rounded-xl p-4 bg-blue-50 border border-blue-200">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="font-semibold text-gray-700">
-                    Scholarship Odds
-                  </div>
-                  <div className="font-bold text-blue-600">
-                    {Math.round((active?.scholarshipOdds || 0) * 100)}%
-                  </div>
-                </div>
-                <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
-                  <div
-                    style={{
-                      width: `${Math.round(
-                        (active?.scholarshipOdds || 0) * 100
-                      )}%`,
-                    }}
-                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-            {/* Narration Control Section */}
-            <div className="space-y-3 mb-8">
-              <div className="flex gap-3">
-                <button
-                  onClick={() =>
-                    playTts(generateNarrative(active, i18n.language))
-                  }
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold flex items-center justify-center gap-2"
-                >
-                  {/* p-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:scale-105 transition */}
-                  <Volume2 className="w-4 h-4" />
-                  Play Narration
-                </button>
+            {/* Narration and Export Controls */}
+            <div className="space-y-3">
+              <button
+                onClick={() => playTts(generateNarrative({ stream, course, collegeType, college, ...currentMetrics }))}
+                disabled={!isSelectionComplete}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
+                aria-label="Play narration of career summary"
+              >
+                <Volume2 className="w-4 h-4" aria-hidden="true" /> Play Narration
+              </button>
+
+              <div className="flex gap-2">
                 <button
                   onClick={handlePauseTts}
                   disabled={!isSpeaking}
-                  className="px-4 py-3 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
-                  title={isPaused ? "Resume" : "Pause"}
+                  className="flex-1 px-4 py-2 bg-indigo-100 text-indigo-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-200 transition"
+                  aria-label={isPaused ? "Resume narration" : "Pause narration"}
                 >
-                  <Pause className="w-4 h-4" />
+                  <Pause className="w-4 h-4 inline mr-2" aria-hidden="true" /> {isPaused ? "Resume" : "Pause"}
                 </button>
                 <button
                   onClick={handleRestartTts}
                   disabled={!isSpeaking}
-                  className="px-4 py-3 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
-                  title="Restart"
+                  className="flex-1 px-4 py-2 bg-indigo-100 text-indigo-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-200 transition"
+                  aria-label="Restart narration"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-4 h-4 inline mr-2" aria-hidden="true" /> Restart
                 </button>
               </div>
 
-              {/* Export Section */}
               <button
-                onClick={() =>
-                  exportSummary({
-                    scenarios,
-                    STREAMS,
-                    COURSES,
-                    COLLEGE_TYPES,
-                    COLLEGES,
-                    SKILLS,
-                    UPSKILLS,
-                    SCHOLARSHIPS,
-                    t,
-                    i18n,
-                    currency,
-                    getLabel,
-                  })
-                }
-                className="w-full border-2 border-blue-600 text-purple-600 py-3 rounded-lg hover:bg-blue-50 transition font-semibold flex items-center justify-center gap-2"
+                onClick={handleExportSummary}
+                disabled={!isSelectionComplete}
+                className="w-full flex items-center justify-center gap-2 border-2 border-indigo-600 text-indigo-600 py-3 rounded-lg font-semibold hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                aria-label="Export career summary as text file"
               >
-                <Download className="w-4 h-4" />
-                Export Summary
+                <Download className="w-4 h-4" aria-hidden="true" /> Export Summary
               </button>
+
               <button
                 onClick={handleShareSummary}
-                className="w-full border-2 border-blue-600 text-purple-600 py-3 rounded-lg hover:bg-blue-50 transition font-semibold flex items-center justify-center gap-2"
+                disabled={!isSelectionComplete}
+                className="w-full flex items-center justify-center gap-2 border-2 border-purple-600 text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                aria-label="Share career summary"
               >
-                <Share2 className="w-4 h-4" />
-                Share Summary
+                <Share2 className="w-4 h-4" aria-hidden="true" /> Share Summary
               </button>
-
-              {showSharePdfModal && (
-                <Portal>
-                  <SharePdfModule
-                    pdfBlob={generatedPdfBlob}
-                    fileName="career-summary.pdf"
-                    onClose={() => setShowSharePdfModal(false)}
-                  />
-                </Portal>
-              )}
             </div>
           </div>
-        </main>
 
-        {/* RIGHT: Summary rail */}
+          {/* FlowChart */}
+          <div className="mt-6">
+            <ReactFlowProvider>
+              <FlowChartEmbedded
+                onExpand={() => setShowFullChart(true)}
+                active={{ stream, course, collegeType, college, ...currentMetrics }}
+              />
+            </ReactFlowProvider>
+          </div>
+        </section>
+
+        {/* RIGHT SIDEBAR: Scenarios List */}
         <aside className="md:col-span-3">
-          <div className="bg-white rounded-3xl p-6 shadow-xl sticky top-24 border border-indigo-100">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-semibold text-indigo-700">
-                {t("summary")}
-              </h4>
-              <div className="text-indigo-600 font-semibold">
-                {t("points")}: {totalPoints}
-              </div>
-            </div>
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-indigo-100">
+            <h2 className="text-lg font-semibold mb-4 text-indigo-700">Saved Scenarios</h2>
 
-            <div className="space-y-4">
-              <SummaryCard
-                title={t("npv")}
-                value={currency(active?.npv || 0)}
-                hint={t("netPresentValue")}
-              />
-              <SummaryCard
-                title={t("roi")}
-                value={(active?.roi || 0).toFixed(2)}
-                hint={t("returnOnInvestment")}
-              />
-              <SummaryCard
-                title={t("employ")}
-                value={`${((active?.employmentProb || 0) * 100).toFixed(1)}%`}
-                hint={t("employmentProbability")}
-              />
-              <SummaryCard
-                title={t("startingSalary").split(" ")[0]}
-                value={currency(active?.startingSalary || 0)}
-                hint={t("averageStartingSalary")}
-              />
-              <SummaryCard
-                title={t("timeToJob")}
-                value={`${active?.timeToJob} ${t("months")}`}
-                hint={t("typicalTimeToEmployment")}
-              />
-            </div>
+            <nav className="space-y-3 max-h-[500px] overflow-y-auto">
+              {scenarios.map((scenario, idx) => (
+                <motion.button
+                  key={scenario.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  onClick={() => setActiveScenarioIndex(idx)}
+                  className={`w-full text-left p-4 rounded-xl border-2 cursor-pointer transition ${
+                    idx === activeScenarioIndex
+                      ? "border-indigo-500 bg-indigo-50"
+                      : "border-gray-200 hover:border-indigo-300"
+                  }`}
+                  aria-current={idx === activeScenarioIndex ? "page" : undefined}
+                  aria-label={`Scenario ${idx + 1}: ${scenario.name}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{scenario.name}</h3>
+                      {scenario.college ? (
+                        <div className="mt-1 text-xs text-gray-500">
+                          <p>
+                            {scenario.course} @ {scenario.college.substring(0, 25)}...
+                          </p>
+                          <p className="mt-1 text-indigo-600 font-medium">
+                            ROI: {scenario.roi?.toFixed(1)}% | NPV: {currency(scenario.npv)}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-xs text-orange-500">Not configured</p>
+                      )}
+                    </div>
+                    {scenarios.length > 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          deleteScenario(idx)
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-500 transition"
+                        aria-label={`Delete scenario ${idx + 1}`}
+                      >
+                        <Trash2 className="w-4 h-4" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                </motion.button>
+              ))}
+            </nav>
 
-            <div className="mt-6">
-              <h5 className="text-sm font-semibold mb-2 text-indigo-700">
-                {t("badges_1")}
-              </h5>
+            {/* Badges */}
+            {/* <div className="mt-6">
+              <h3 className="text-sm font-semibold mb-2 text-indigo-700">Badges</h3>
               <div className="flex flex-wrap gap-2">
                 {badges.length === 0 ? (
-                  <div className="text-indigo-400 italic">
-                    {t("noBadgesYet")}
-                  </div>
+                  <span className="text-indigo-400 italic text-sm">No badges yet</span>
                 ) : (
-                  badges.map((b) => <Badge key={b}>{b}</Badge>)
+                  badges.map((b) => (
+                    <span
+                      key={b}
+                      className="inline-flex items-center bg-gradient-to-r from-pink-500 to-yellow-400 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm"
+                    >
+                      {b}
+                    </span>
+                  ))
                 )}
               </div>
-            </div>
+            </div> */}
 
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={() => {
-                  setShareContent(generateShareContent(active));
-                  setShowShareModal(true);
-                }}
-                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-xl"
-              >
-                {t("share")}
-              </button>
-              {/* <button
-                onClick={() => alert("Save scenario (mock)")}
-                className="flex-1 border border-indigo-100 py-2 rounded-xl text-indigo-700"
-              >
-                {" "}
-                {t("save")}
-              </button> */}
-              {showShareModal && (
-                <Portal>
-                  <ShareModule
-                    summaryText={shareContent}
-                    summaryUrl={window.location.href} // Optional: your app's URL
-                    onClose={() => setShowShareModal(false)}
-                  />
-                </Portal>
-              )}
-            </div>
+            {/* Quick Share */}
+            <button
+              onClick={() => {
+                if (isSelectionComplete) {
+                  setShareContent(generateShareContent())
+                  setShowShareModal(true)
+                } else {
+                  alert("Please complete selection first")
+                }
+              }}
+              disabled={!isSelectionComplete}
+              className="mt-4 w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-xl font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+              aria-label="Share current scenario"
+            >
+              Share
+            </button>
           </div>
         </aside>
-      </div>
+      </main>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <h2 className="text-2xl font-extrabold text-indigo-700 mb-6">
-          {t("scenarios") || "Scenarios"}
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {scenarios.map((scenario, idx) => {
-            const streamLabel = getLabel(
-              STREAMS.find((s) => s.id === scenario.stream),
-              i18n.language
-            );
-            const courseLabel = getLabel(
-              (COURSES[scenario.stream] || []).find(
-                (c) => c.id === scenario.course
-              ),
-              i18n.language
-            );
-            const collegeLabel = getLabel(
-              (COLLEGES[scenario.collegeType] || []).find(
-                (cl) => cl.id === scenario.college
-              ),
-              i18n.language
-            );
-            const skillLabels = (scenario.skills || [])
-              .map((sk) =>
-                getLabel(
-                  SKILLS.find((skl) => skl.id === sk),
-                  i18n.language
-                )
-              )
-              .join(", ");
-            const scholarshipLabel = getLabel(
-              SCHOLARSHIPS.find((sch) => sch.id === scenario.scholarship),
-              i18n.language
-            );
-
-            return (
-              <motion.div
-                key={scenario.id || idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100 hover:shadow-xl transition"
-              >
-                {/* Header with name and buttons */}
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-extrabold text-indigo-700">
-                      {scenario.name || `${t("scenario")} ${idx + 1}`}
-                    </h3>
-                    <p className="text-xs text-indigo-400 mt-1">
-                      {t("pathDetails") || "Path Details"}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        playTts(generateNarrative(scenario, i18n.language))
-                      }
-                      className="p-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:scale-105 transition"
-                      title={t("listen") || "Listen"}
-                    >
-                      <Volume2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const narrativeText = generateNarrative(
-                          scenario,
-                          i18n.language
-                        );
-                        const blob = new Blob([narrativeText], {
-                          type: "text/plain;charset=utf-8",
-                        });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = `scenario_${idx + 1}_narrative.txt`;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition"
-                      title={t("export") || "Export"}
-                    >
-                      <X
-                        className="w-4 h-4"
-                        style={{ transform: "rotate(45deg)" }}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Selection Details */}
-                <div className="mb-4 pb-4 border-b border-indigo-100">
-                  <div className="text-xs font-semibold text-indigo-600 mb-3 uppercase">
-                    {t("selected") || "Selected"}
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="text-indigo-500 font-semibold">
-                        {t("stream")}:
-                      </span>{" "}
-                      <span className="text-gray-700">{streamLabel}</span>
-                    </div>
-                    <div>
-                      <span className="text-indigo-500 font-semibold">
-                        {t("course")}:
-                      </span>{" "}
-                      <span className="text-gray-700">{courseLabel}</span>
-                    </div>
-                    <div>
-                      <span className="text-indigo-500 font-semibold">
-                        {t("college")}:
-                      </span>{" "}
-                      <span className="text-gray-700">{collegeLabel}</span>
-                    </div>
-                    {skillLabels && (
-                      <div>
-                        <span className="text-indigo-500 font-semibold">
-                          {t("skills")}:
-                        </span>{" "}
-                        <span className="text-gray-700">{skillLabels}</span>
-                      </div>
-                    )}
-                    {scholarshipLabel && (
-                      <div>
-                        <span className="text-indigo-500 font-semibold">
-                          {t("scholarships")}:
-                        </span>{" "}
-                        <span className="text-gray-700">
-                          {scholarshipLabel}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Statistics Results */}
-                <div>
-                  <div className="text-xs font-semibold text-indigo-600 mb-3 uppercase">
-                    {t("results") || "Results & Statistics"}
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between bg-indigo-50 p-2 rounded-lg">
-                      <span className="text-sm text-indigo-700 font-semibold">
-                        {t("roi")}:
-                      </span>
-                      <span className="font-bold text-indigo-700">
-                        {(scenario.roi || 0).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between bg-indigo-50 p-2 rounded-lg">
-                      <span className="text-sm text-indigo-700 font-semibold">
-                        {t("employ")} %:
-                      </span>
-                      <span className="font-bold text-indigo-700">
-                        {((scenario.employmentProb || 0) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between bg-indigo-50 p-2 rounded-lg">
-                      <span className="text-sm text-indigo-700 font-semibold">
-                        {t("startingSalary")}:
-                      </span>
-                      <span className="font-bold text-indigo-700">
-                        {currency(scenario.startingSalary || 0)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between bg-indigo-50 p-2 rounded-lg">
-                      <span className="text-sm text-indigo-700 font-semibold">
-                        {t("timeToJob")}:
-                      </span>
-                      <span className="font-bold text-indigo-700">
-                        {scenario.timeToJob} {t("months")}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between bg-indigo-50 p-2 rounded-lg">
-                      <span className="text-sm text-indigo-700 font-semibold">
-                        {t("scholarshipOdds")}:
-                      </span>
-                      <span className="font-bold text-indigo-700">
-                        {Math.round((scenario.scholarshipOdds || 0) * 100)}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between bg-indigo-50 p-2 rounded-lg">
-                      <span className="text-sm text-indigo-700 font-semibold">
-                        {t("npv")}:
-                      </span>
-                      <span className="font-bold text-indigo-700">
-                        {currency(scenario.npv || 0)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Narration controls at bottom */}
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={() => {
-                      if (isSpeaking) {
-                        handleRestartTts();
-                      } else {
-                        playTts(generateNarrative(scenario, i18n.language));
-                      }
-                    }}
-                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-lg hover:scale-[1.01] transition text-sm font-semibold flex items-center justify-center gap-1"
-                  >
-                    <Volume2 className="w-3 h-3" />
-                    {isSpeaking
-                      ? t("restart") || "Restart"
-                      : t("listen") || "Listen"}
-                  </button>
-                  <button
-                    onClick={handlePauseTts}
-                    disabled={!isSpeaking}
-                    className="px-3 py-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                    title={
-                      isPaused ? t("resume") || "Resume" : t("pause") || "Pause"
-                    }
-                  >
-                    <Pause className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* VOICE DOCK */}
-      <VoiceDock
-        lang={i18n.language}
-        setLang={i18n.changeLanguage}
-        voiceConsent={voiceConsent}
-        setVoiceConsent={setVoiceConsent}
-        listening={listening}
-        toggleListening={toggleListening}
-        transcripts={transcripts}
-        playTts={playTts}
-        expanded={dockExpanded}
-        setExpanded={setDockExpanded}
-        t={t}
-        clearTranscripts={() => setTranscripts([])}
-      />
-    </div>
-  );
-}
-
-/* PRESENTATIONAL SMALL COMPONENTS */
-
-function Select({
-  label,
-  value,
-  onChange,
-  options = [],
-  disabled = false,
-  lang = "en",
-}) {
-  return (
-    <label className="block">
-      <div className="text-sm text-indigo-700 mb-2 font-semibold">{label}</div>
-      <select
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className="w-full rounded-xl p-3 border border-indigo-100 shadow-sm focus:outline-none"
-        aria-label={label}
-      >
-        <option value="">{`-- ${label} --`}</option>
-        {options.map((opt) => (
-          <option key={opt.id} value={opt.id}>
-            {getLabel(opt, lang)}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function Chip({ children, active = false, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-3 py-1 rounded-full text-sm font-semibold border transition ${
-        active
-          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
-          : "bg-white border-indigo-100 text-indigo-700"
-      }`}
-      aria-pressed={active}
-    >
-      {children}
-    </button>
-  );
-}
-
-function StatPill({ icon, label, value }) {
-  return (
-    <div className="bg-white border border-indigo-100 rounded-xl px-3 py-2 shadow-sm flex items-center gap-3 min-w-[92px]">
-      <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">{icon}</div>
-      <div className="text-right">
-        <div className="text-xs text-indigo-500 font-semibold">{label}</div>
-        <div className="font-bold text-indigo-700 text-lg">{value}</div>
-      </div>
-    </div>
-  );
-}
-
-function SummaryCard({ title, value, hint }) {
-  return (
-    <div className="border border-indigo-100 rounded-2xl p-4 bg-white shadow-sm hover:shadow-md transition">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold text-indigo-700">{title}</div>
-        <div className="text-xs text-indigo-400 italic">{hint}</div>
-      </div>
-      <div className="mt-3 text-xl font-extrabold text-indigo-900">{value}</div>
-    </div>
-  );
-}
-
-function Badge({ children }) {
-  return (
-    <span className="inline-flex items-center bg-gradient-to-r from-pink-500 to-yellow-400 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
-      {children}
-    </span>
-  );
-}
-
-/* VOICE DOCK */
-function VoiceDock({
-  lang,
-  setLang,
-  voiceConsent,
-  setVoiceConsent,
-  listening,
-  toggleListening,
-  transcripts,
-  playTts,
-  expanded,
-  setExpanded,
-  t,
-  clearTranscripts,
-}) {
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") setExpanded(false);
-    };
-    if (expanded) window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [expanded, setExpanded]);
-
-  const panelWidthClass = "w-full max-w-md md:max-w-sm lg:max-w-md";
-
-  return (
-    <>
-      <div className="fixed right-6 bottom-6 z-50 flex items-end justify-end">
-        <button
-          aria-expanded={expanded}
-          aria-label={expanded ? t("close") : t("voiceAssistant")}
-          onClick={() => setExpanded((v) => !v)}
-          className="w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-2xl transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300"
-          title={t("voiceAssistant")}
-        >
-          <Mic className="w-6 h-6" />
-        </button>
-      </div>
-
+      {/* MODALS */}
       <AnimatePresence>
-        {expanded && (
-          <>
-            <div
-              onClick={() => setExpanded(false)}
-              className="fixed inset-0 bg-black bg-opacity-30 z-40"
-              aria-hidden="true"
+        {/* Full Screen FlowChart Modal */}
+        {showFullChart && (
+          <FullScreenFlowChart
+            onClose={() => setShowFullChart(false)}
+            active={{ stream, course, collegeType, college, ...currentMetrics }}
+            getLabel={getLabel}
+            lang="en"
+          />
+        )}
+
+        {/* Share Text Modal */}
+        {showShareModal && (
+          <Portal>
+            <ShareModule
+              summaryText={shareContent}
+              summaryUrl={typeof window !== "undefined" ? window.location.href : ""}
+              onClose={() => setShowShareModal(false)}
             />
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.16 }}
-              className={`fixed z-50 inset-0 flex items-end md:items-center justify-center md:justify-end p-4`}
-            >
-              <div
-                className={`${panelWidthClass} bg-white rounded-3xl shadow-2xl border border-indigo-100 overflow-hidden`}
+          </Portal>
+        )}
+
+        {/* Share PDF Modal */}
+        {showSharePdfModal && (
+          <Portal>
+            <SharePdfModule
+              pdfBlob={generatedPdfBlob}
+              fileName="career-summary.pdf"
+              onClose={() => setShowSharePdfModal(false)}
+            />
+          </Portal>
+        )}
+
+        {/* Voice Dock */}
+        {dockExpanded && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="fixed bottom-4 right-4 bg-white rounded-xl shadow-2xl border border-gray-200 w-80 z-50"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900">Voice Commands</h3>
+              <button
+                onClick={() => setDockExpanded(false)}
+                className="p-1 hover:bg-gray-100 rounded transition"
+                aria-label="Close voice commands"
               >
-                <div className="flex items-center justify-between p-4 border-b border-neutral-100">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-2 rounded-full text-white">
-                      <Mic className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-indigo-700">
-                        {t("voiceAssistant")}
-                      </div>
-                      <div className="text-xs text-neutral-500">
-                        {t("tryCommands")}
-                      </div>
-                    </div>
-                  </div>
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
+            </div>
 
-                  <div className="flex items-center gap-2">
+            <div className="p-4">
+              {!voiceConsent ? (
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-3">Enable voice commands?</p>
+                  <div className="flex gap-2 justify-center">
                     <button
-                      onClick={() => {
-                        const currentIndex = languagesList.findIndex(
-                          (l) => l.code === lang
-                        );
-                        const nextIndex =
-                          (currentIndex + 1) % languagesList.length;
-                        setLang(languagesList[nextIndex].code);
-                      }}
-                      className="text-xs px-3 py-1 border rounded-lg text-indigo-700"
+                      onClick={() => setVoiceConsent(true)}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition"
+                      aria-label="Enable voice commands"
                     >
-                      {lang === "en" ? "हिंदी" : "EN"}
+                      Enable
                     </button>
-
                     <button
-                      onClick={() => setExpanded(false)}
-                      className="p-2 rounded-md text-neutral-600 hover:bg-neutral-100"
-                      aria-label={t("close")}
+                      onClick={() => setDockExpanded(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition"
+                      aria-label="Cancel voice commands"
                     >
-                      <X className="w-5 h-5" />
+                      Cancel
                     </button>
                   </div>
                 </div>
+              ) : (
+                <div className="space-y-3">
+                  <button
+                    onClick={toggleListening}
+                    className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition ${
+                      listening
+                        ? "bg-red-500 text-white hover:bg-red-600"
+                        : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                    }`}
+                    aria-label={listening ? "Stop listening" : "Start listening"}
+                  >
+                    <Mic className="w-5 h-5" aria-hidden="true" />
+                    {listening ? "Stop Listening" : "Start Listening"}
+                  </button>
 
-                <div className="p-4 space-y-3 max-h-[60vh] overflow-auto">
-                  {!voiceConsent ? (
-                    <div className="p-4 bg-indigo-50 rounded-lg text-center">
-                      <p className="text-sm text-indigo-700 mb-3">
-                        {t("consentMic")}
-                      </p>
-                      <div className="flex gap-3 justify-center">
-                        <button
-                          onClick={() => setVoiceConsent(true)}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
-                        >
-                          {t("consentAccept")}
-                        </button>
-                        <button
-                          onClick={() => setVoiceConsent(false)}
-                          className="px-4 py-2 border rounded-lg"
-                        >
-                          {t("consentDecline")}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-start gap-3">
-                        <MicButton
-                          active={listening}
-                          onClick={toggleListening}
-                        />
-                        <div className="flex-1">
-                          <div className="text-xs text-neutral-500 mb-2 font-mono">
-                            {t("listening")}:{" "}
-                            <span
-                              className={
-                                listening
-                                  ? "text-green-600 font-semibold"
-                                  : "text-red-500 font-semibold"
-                              }
-                            >
-                              {listening ? t("on") : t("off")}
-                            </span>
-                          </div>
-                          <div className="h-36 overflow-auto bg-neutral-50 rounded-lg p-3 text-xs font-mono text-neutral-800">
-                            {transcripts.length === 0 ? (
-                              <div className="text-neutral-400 italic">
-                                {t("noTranscriptsYet")}
-                              </div>
-                            ) : (
-                              transcripts.map((tr, i) => (
-                                <div key={i} className="mb-1 break-words">
-                                  {tr}
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <button
-                            onClick={() => playTts(transcripts.join(" "))}
-                            className="p-2 bg-indigo-50 rounded-md"
-                          >
-                            <Volume2 className="w-5 h-5 text-indigo-600" />
-                          </button>
-                          <button
-                            onClick={() => clearTranscripts()}
-                            className="p-2 bg-neutral-50 rounded-md"
-                            title="Clear transcripts"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 text-xs text-neutral-600">
-                        <div className="font-semibold mb-1">
-                          {t("suggestedCommands")}
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                          <CommandChip
-                            onClick={() => {
-                              alert("Compare (mock)");
-                              setExpanded(false);
-                            }}
-                          >
-                            {t("compare")}
-                          </CommandChip>
-                          <CommandChip
-                            onClick={() => {
-                              alert("Explain ROI (mock)");
-                              setExpanded(false);
-                            }}
-                          >
-                            {t("roi")} {lang === "hi" ? "समझाएं" : "Explain"}
-                          </CommandChip>
-                          <CommandChip
-                            onClick={() => {
-                              alert("Show scholarships (mock)");
-                              setExpanded(false);
-                            }}
-                          >
-                            {t("scholarships")}
-                          </CommandChip>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="p-4 border-t flex items-center justify-between">
-                  <div className="text-sm text-neutral-500">
-                    {t("voiceAssistant")}
+                  <div className="h-24 overflow-auto bg-gray-50 rounded-lg p-2 text-xs border border-gray-200">
+                    {transcripts.length === 0 ? (
+                      <p className="text-gray-400 italic">Transcripts will appear here...</p>
+                    ) : (
+                      transcripts.map((tr, i) => (
+                        <p key={i} className="mb-1 text-gray-700">
+                          {tr}
+                        </p>
+                      ))
+                    )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() =>
-                        navigator.clipboard?.writeText(transcripts.join("\n"))
-                      }
-                      className="text-sm px-3 py-2 border rounded-lg"
-                    >
-                      {t("copy")}
-                    </button>
-                    <button
-                      onClick={() => setExpanded(false)}
-                      className="text-sm px-3 py-2 rounded-lg bg-indigo-600 text-white"
-                    >
-                      {t("done")}
-                    </button>
-                  </div>
+
+                  <button
+                    onClick={() => setTranscripts([])}
+                    className="w-full py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
+                    aria-label="Clear voice transcripts"
+                  >
+                    Clear
+                  </button>
                 </div>
-              </div>
-            </motion.div>
-          </>
+              )}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
-    </>
-  );
-}
-
-/* small helpers & local lists used in VoiceDock */
-const languagesList = [
-  { code: "en", name: "English" },
-  { code: "hi", name: "हिंदी" },
-  { code: "ur", name: "اردو" },
-  { code: "dogri", name: "डोगरी" },
-  { code: "gojri", name: "गोजरी" },
-  { code: "pahari", name: "पहाड़ी" },
-];
-
-function MicButton({ active = false, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={active}
-      className={`w-14 h-14 rounded-full flex items-center justify-center ${
-        active
-          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-2xl scale-105"
-          : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
-      } focus:outline-none`}
-      aria-label="Toggle microphone"
-    >
-      <Mic className="w-6 h-6" />
-    </button>
-  );
-}
-
-function CommandChip({ children, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-3 py-1 text-xs font-semibold border rounded-full bg-neutral-100 hover:bg-neutral-200"
-    >
-      {children}
-    </button>
-  );
+    </div>
+  )
 }
