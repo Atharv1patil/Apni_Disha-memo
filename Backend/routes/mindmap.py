@@ -4,6 +4,7 @@ import json
 
 mindmap_bp = Blueprint("mindmap", __name__)
 
+
 SYSTEM_PROMPT = """
 You are a RoadmapMarkdownGenerator AI.
 Your job is to output ONLY clean Markdown.
