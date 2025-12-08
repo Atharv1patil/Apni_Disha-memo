@@ -89,15 +89,11 @@ def get_content_by_streams():
         # lowercase
         value = value.lower()
 
-        # remove all non-alphanumeric chars (., spaces, -, _, etc.)
-        # "B.Tech" -> "btech"; "B Tech" -> "btech"; "B-Tech" -> "btech"
         value = "".join(ch for ch in value if ch.isalnum())
 
         return value
 
-    # Pre-normalize requested streams: ["BSc","BCom","BBA","BCA","B.Tech"] → {"bsc","bcom","bba","bca","btech"}
     normalized_recs = {normalize_label(r) for r in recs if r is not None}
-    print("Normalized recs:", normalized_recs)
 
     # Fetch ALL content from DB (no filter in Mongo)
     contents_cursor = db.Content.find({})
@@ -110,12 +106,6 @@ def get_content_by_streams():
         # Normalize title and tags
         normalized_title = normalize_label(title_raw)
         normalized_tags = [normalize_label(t) for t in tags_raw if t is not None]
-
-        print(f"\nDoc _id={c.get('_id')}")
-        print("  title:", title_raw)
-        print("  tags:", tags_raw)
-        print("  normalized_title:", normalized_title)
-        print("  normalized_tags:", normalized_tags)
 
         matched = False
         for rec_norm in normalized_recs:
@@ -141,14 +131,12 @@ def get_content_by_streams():
                     or tag_norm in rec_norm
                 ):
                     matched = True
-                    print(f"  -> matched by tag {tag_norm!r} using rec={rec_norm!r}")
                     break
 
             if matched:
                 break
 
         if not matched:
-            print("  -> no match, skipping")
             continue
 
         # Make _id JSON-serializable
@@ -182,7 +170,4 @@ def get_content_by_streams():
                 pass
 
         contents.append(c)
-        print("  ✅ included in response")
-
-    print(f"\nTotal matched contents: {len(contents)}")
     return jsonify(contents), 200

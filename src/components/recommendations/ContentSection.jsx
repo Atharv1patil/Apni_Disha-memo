@@ -2,12 +2,20 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Star, Clock, Users, ExternalLink, BookOpen } from "lucide-react";
+import {
+  Star,
+  Clock,
+  Users,
+  ExternalLink,
+  BookOpen,
+  Loader2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function ContentSection() {
   const [data, setData] = useState([]);
   const [recs, setRecs] = useState([]);
+  const [loading, setLoading] = useState(false); // 🔹 NEW
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -20,16 +28,16 @@ export default function ContentSection() {
     try {
       const storedValue = JSON.parse(storedValueRaw);
       const recsObj = storedValue.quiz_results?.recommendations ?? [];
-      const recsArr = [];
+      const recsAr = [];
 
       recsObj.forEach((rec) => {
         rec.degrees.forEach((deg) => {
-          recsArr.push(deg.degree);
+          recsAr.push(deg.degree);
         });
       });
 
-      console.log("recs from localStorage:", recsArr);
-      setRecs(recsArr);
+      console.log("recs from localStorage:", recsAr);
+      setRecs(recsAr);
     } catch (e) {
       console.error("Failed to parse apnidisha_student_profile:", e);
     }
@@ -38,6 +46,8 @@ export default function ContentSection() {
   const fetchContentRecommendations = useCallback(async () => {
     try {
       console.log("Sending recs to backend:", recs);
+      setLoading(true); // 🔹 start loading
+
       const response = await fetch(
         "http://localhost:8080/api/content/streams",
         {
@@ -54,6 +64,8 @@ export default function ContentSection() {
       setData(result);
     } catch (error) {
       console.error("Failed to fetch content recommendations:", error);
+    } finally {
+      setLoading(false); // 🔹 stop loading
     }
   }, [recs]);
 
@@ -65,6 +77,30 @@ export default function ContentSection() {
 
   const safeData = Array.isArray(data) ? data : [];
 
+  // 🔹 Show loading state while fetching
+  if (loading) {
+    return (
+      <Card className="border-0 shadow-lg">
+        <CardContent className="p-12 text-center flex flex-col items-center">
+          <Loader2 className="h-10 w-10 animate-spin text-indigo-500 mb-4" />
+          <h3 className="text-xl font-semibold">
+            {t(
+              "recommendations_1.content.loading",
+              "Fetching recommendations..."
+            )}
+          </h3>
+          <p className="text-gray-600">
+            {t(
+              "recommendations_1.content.loadingDesc",
+              "Hang on while we load content tailored for you."
+            )}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 🔹 Only show "no recommendations" when NOT loading
   if (safeData.length === 0) {
     return (
       <Card className="border-0 shadow-lg">
