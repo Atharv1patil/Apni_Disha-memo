@@ -13,7 +13,8 @@ import QuizList from "./components/quiz/QuizList";
 
 //counseller
 import Counseller from "./components/counseller/Counseller";
-
+//new quiz
+import NewQuiz from "./components/newquiz/quiz";
 import ModernRecommendationsPage from "./components/recommendations/ModernRecommendationsPage";
 import ModernCollegeDirectory from "./components/colleges/ModernCollegeDirectory";
 import CollegeDetail from "./components/colleges/CollegeDetail";
@@ -318,6 +319,17 @@ const appRouter = createBrowserRouter([
       <ModernLayout>
         <ClerkProtectedRoute>
           <AdminCareerGraph />
+        </ClerkProtectedRoute>
+      </ModernLayout>
+    ),
+  },
+  //new quiz
+  {
+    path: "/newquiz",
+    element: (
+      <ModernLayout>
+        <ClerkProtectedRoute>
+          <NewQuiz />
         </ClerkProtectedRoute>
       </ModernLayout>
     ),
