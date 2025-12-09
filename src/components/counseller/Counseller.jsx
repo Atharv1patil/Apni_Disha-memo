@@ -174,12 +174,13 @@ function Counseller() {
 
           {/* Messages */}
           <div className="flex-1 space-y-3 overflow-y-auto rounded-lg border border-slate-900 bg-slate-950 px-3 py-3 text-sm">
-            {history.length === 0 && (
-              <div className="mt-12 text-center text-xs text-slate-500">
-                Start a conversation with your AI career mentor.
-              </div>
-            )}
-
+            {history.length ||
+              (!history === 0 && (
+                <div className="mt-12 text-center text-xs text-slate-500">
+                  Start a conversation with your AI career mentor.
+                </div>
+              ))}
+            {console.log("bruhhhhhhh ", history)}
             {history.map((msg, idx) => (
               <div
                 key={idx}

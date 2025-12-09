@@ -210,10 +210,10 @@ def get_history():
                 })
         else:
                 #no user history, new desu
-        
+                print("new user ig")
                 return jsonify({
                     "success": True,
-                    "history": "user is new",
+                    "history": history,
                     "user_id": user_id
                 })
         
